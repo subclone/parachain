@@ -35,11 +35,4 @@ pub trait BankAccountTrait: Send + Sync {
 
     /// Delete a bank account by unique identifier.
     async fn delete(&self, id: &Uuid) -> Result<(), DomainError>;
-
-    /// Register an on-chain `AccountId` to a bank account.
-    async fn register_account(
-        &self,
-        card_number: &str,
-        account_id: &str,
-    ) -> Result<(), DomainError>;
 }

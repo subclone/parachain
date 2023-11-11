@@ -53,7 +53,7 @@ To build the Docker image:
 ```bash
 make docker-build
 # OR
-docker build --platform linux/x86_64 -t pcidss-oracle ..
+docker build --platform linux/x86_64 -t pcidss-oracle .
 ```
 
 To run the Docker image:

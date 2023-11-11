@@ -1,10 +1,12 @@
-FROM docker.io/paritytech/ci-linux:production as builder
+FROM docker.io/rust:slim-bullseye as builder
 
 WORKDIR /pcidss
 
 COPY . .
 
-RUN cargo build --release --locked -p pcidss-oracle
+RUN  --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/pcidss/target \
+    cargo build --release --locked -p pcidss-oracle
 
 FROM docker.io/debian:bullseye-slim
 

@@ -100,7 +100,6 @@ impl From<&tokio_postgres::Row> for Transaction {
 impl Into<BankAccountUpdate> for &Transaction {
     fn into(self) -> BankAccountUpdate {
         BankAccountUpdate::Balance {
-            id: self.from,
             amount: self.amount,
             transaction_type: match self.transaction_type {
                 1 => TransactionType::Credit,

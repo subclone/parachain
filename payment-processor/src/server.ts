@@ -154,19 +154,34 @@ export default class Server {
 
     // Format is `MMDD`
     const monthDay = [now.slice(5, 7), now.slice(8, 10)].join("");
-    const { amount, cardNumber, cardExpiration, cvv, txHash }: RequestBody =
-      body;
+    const {
+      amount,
+      cardNumber,
+      cardExpiration,
+      cvv,
+      txHash,
+      accountId,
+    }: RequestBody = body;
 
     let isReversal = txHash !== null;
+    let registerOnChainAccount = accountId !== null;
 
-    console.log("cardExpiration, ", cardExpiration);
     // Format is `MMDDhhmmss`
     const transmissionDate = `${monthDay}${timeDate}`;
 
     const track2 = `${cardNumber}D${cardExpiration.replace("/", "")}C${cvv}`;
 
+    const mti = isReversal
+      ? MTI.ReversalRequest
+      : registerOnChainAccount
+      ? MTI.NetworkManagementRequest
+      : MTI.AuthorizationRequest;
+
+    /// Private data is either `txHash` or `accountId`
+    const privateData = isReversal ? txHash : accountId;
+
     return {
-      0: isReversal ? MTI.ReversalRequest : MTI.AuthorizationRequest,
+      0: mti,
       2: cardNumber,
       3: ProcessingCode.Purchase,
       4: ensurePadded(amount, 12), // Amount is 12 characters long, check the length of amount and pad it with `0` from the left
@@ -181,7 +196,7 @@ export default class Server {
       42: "ABCDEFGH_000001", // Card Acceptor Identification Code
       43: "Dummy business name, Dummy City, 1200000", // Card Acceptor Name/Location
       49: "997", // Currency Code, Transaction, USD - 997, EUR - 978
-      126: txHash ? txHash : "0".repeat(99), // dummy 100 bytes, will be replaced in the future
+      126: privateData ?? "0".repeat(99), // dummy 100 bytes, will be replaced in the future
     };
   }
 

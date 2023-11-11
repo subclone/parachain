@@ -33,10 +33,6 @@ pub trait OracleApi<IsoMsg> {
     /// Get bank account by card number
     #[method(name = "get_bank_account")]
     async fn get_bank_account(&self, card_number: String) -> RpcResult<BankAccount>;
-
-    /// Register on-chain `AccountId`
-    #[method(name = "register_account")]
-    async fn register_account(&self, card_number: String, account_id: String) -> RpcResult<()>;
 }
 
 /// PCIDSS Compliant Oracle RPC API implementation
@@ -111,24 +107,7 @@ impl OracleApiServer<IsoMsg> for OracleApiImpl {
                 ErrorCode::InvalidParams
             })?;
 
-        log::debug!("ba = {:?}", ba);
-
         ba.ok_or(ErrorCode::InvalidParams.into())
-    }
-
-    async fn register_account(&self, card_number: String, account_id: String) -> RpcResult<()> {
-        log::debug!("Received register_account request: {:?}", account_id);
-
-        self.processor
-            .bank_account_controller
-            .register_account(&card_number, &account_id)
-            .await
-            .map_err(|e| {
-                log::debug!("Error: {:?}", e);
-                ErrorCode::InvalidParams
-            })?;
-
-        Ok(())
     }
 }
 

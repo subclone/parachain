@@ -68,6 +68,9 @@ impl Iso8583MessageProcessor {
                         self.handle_authorization_request(&mut res_iso_msg).await?
                     }
                     MTI::ReversalRequest => self.handle_reversal_request(&mut res_iso_msg).await?,
+                    MTI::NetworkManagementRequest => {
+                        self.handle_register_account(&mut res_iso_msg).await?
+                    }
                     _ => {
                         return Err(DomainError::ApiError(
                             "Unsupported message type".to_string(),
@@ -125,7 +128,6 @@ impl Iso8583MessageProcessor {
 
             // perform the transaction
             let update_beneficiary_account = BankAccountUpdate::Balance {
-                id: bank_account.id,
                 amount,
                 transaction_type: TransactionType::Credit,
             };
@@ -146,7 +148,6 @@ impl Iso8583MessageProcessor {
 
                     if let Ok(Some(recipient_account)) = maybe_recipient_account {
                         let update_recipient_account = BankAccountUpdate::Balance {
-                            id: recipient_account.id,
                             amount,
                             transaction_type: TransactionType::Debit,
                         };
@@ -224,7 +225,6 @@ impl Iso8583MessageProcessor {
 
             // updates to bank accounts
             let update_account = BankAccountUpdate::Balance {
-                id: transaction.from,
                 amount: transaction.amount,
                 transaction_type: TransactionType::Debit,
             };
@@ -237,7 +237,6 @@ impl Iso8583MessageProcessor {
             {
                 if let Some(beneficiary_id) = transaction.to {
                     let update_recipient_account = BankAccountUpdate::Balance {
-                        id: beneficiary_id,
                         amount: transaction.amount,
                         transaction_type: TransactionType::Credit,
                     };
@@ -262,6 +261,51 @@ impl Iso8583MessageProcessor {
                 ResponseCodes::InvalidTransaction.into(),
             )?;
         }
+
+        Ok(())
+    }
+
+    /// Handle register account request
+    ///
+    /// Extracts necessary fields from the ISO message and performs account registration.
+    ///
+    /// This is a special request that is used to register the on-chain `AccountId` in the database.
+    ///
+    /// The format of the private data is: `0x<AccountId:64>` (hex-encoded ss58 address)
+    async fn handle_register_account(&self, iso_msg: &mut IsoMsg) -> Result<(), DomainError> {
+        iso_msg.set("message_type", MTI::NetworkManagementResponse.into())?;
+
+        // extract `AccountId` from the ISO message
+        let private_data = iso_msg.bmp_child_value(126)?;
+
+        let validation_result = self.validate(iso_msg).await?;
+
+        // early return if not approved
+        if validation_result != ResponseCodes::Approved {
+            iso_msg.set_on(RESPONSE_CODE_FIELD_NUMBER, validation_result.into())?;
+            return Ok(());
+        }
+
+        let card_number = iso_msg.bmp_child_value(2)?;
+
+        let (account_id, _) = private_data.trim_start_matches("0x").split_at(64);
+
+        let bank_account = self
+            .bank_account_controller
+            .find_by_card_number(&card_number)
+            .await?
+            .ok_or(DomainError::NotFound("Bank account not found".to_string()))?;
+
+        self.bank_account_controller
+            .update(
+                &bank_account.id,
+                &BankAccountUpdate::Info {
+                    account_id: Some(account_id.to_string()),
+                },
+            )
+            .await?;
+
+        iso_msg.set_on(RESPONSE_CODE_FIELD_NUMBER, ResponseCodes::Approved.into())?;
 
         Ok(())
     }

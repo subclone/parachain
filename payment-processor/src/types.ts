@@ -21,6 +21,7 @@ export interface RequestBody {
   cardExpiration: string;
   cvv: string;
   txHash: string | null;
+  accountId: string | null;
 }
 
 // Common MTI types
@@ -37,6 +38,8 @@ export enum MTI {
   ReversalRequest = "0400",
   // Reversal response
   ReversalRequestResponse = "0410",
+  // Network Management Request
+  NetworkManagementRequest = "0800",
 }
 
 // Merchant Category Codes

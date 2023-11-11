@@ -53,8 +53,6 @@ impl BankAccountCreate {
 pub enum BankAccountUpdate {
     /// Balance update.
     Balance {
-        /// Unique identifier of the bank account.
-        id: Uuid,
         /// Amount of change to the balance.
         amount: u32,
         /// Type of change to the balance.
@@ -62,8 +60,6 @@ pub enum BankAccountUpdate {
     },
     /// Update bank account info.
     Info {
-        /// Unique identifier of the bank account.
-        id: Uuid,
         /// AccountId on the blockchain.
         account_id: Option<String>,
     },
@@ -125,7 +121,6 @@ impl BankAccount {
     ) -> Result<(), DomainError> {
         match bank_account_update {
             BankAccountUpdate::Balance {
-                id: _id,
                 amount,
                 transaction_type,
             } => {
@@ -146,7 +141,16 @@ impl BankAccount {
 
                 Ok(())
             }
-            BankAccountUpdate::Info { id: _, account_id } => {
+            BankAccountUpdate::Info { account_id } => {
+                if let Some(account_id) = account_id {
+                    // Account ID must be 64 characters long, without the 0x prefix
+                    if account_id.trim_start_matches("0x").len() != 64 {
+                        return Err(DomainError::ApiError(String::from(
+                            "Account ID must be 64 characters long",
+                        )));
+                    }
+                }
+
                 self.account_id = account_id.clone();
                 Ok(())
             }
@@ -190,7 +194,6 @@ mod tests {
         );
 
         let update = BankAccountUpdate::Balance {
-            id: Uuid::new_v4(),
             transaction_type: TransactionType::Debit,
             amount: 500,
         };
@@ -216,7 +219,6 @@ mod tests {
         );
 
         let update = BankAccountUpdate::Balance {
-            id: Uuid::new_v4(),
             transaction_type: TransactionType::Credit,
             amount: 500,
         };
@@ -242,7 +244,6 @@ mod tests {
         );
 
         let update = BankAccountUpdate::Balance {
-            id: Uuid::new_v4(),
             transaction_type: TransactionType::Credit,
             amount: 2000, // More than the available balance
         };
@@ -269,7 +270,6 @@ mod tests {
         );
 
         let update = BankAccountUpdate::Balance {
-            id: Uuid::new_v4(),
             transaction_type: TransactionType::Debit,
             amount: 500,
         };
@@ -295,14 +295,24 @@ mod tests {
         );
 
         let update = BankAccountUpdate::Info {
-            id: Uuid::new_v4(),
             account_id: Some("1234".to_string()),
         };
 
-        bank_account
-            .try_update(&update)
-            .await
-            .expect("Info update failed");
-        assert_eq!(bank_account.account_id, Some("1234".to_string()));
+        let invalid_length_account = bank_account.try_update(&update).await;
+        assert_eq!(
+            invalid_length_account,
+            Err(DomainError::ApiError(String::from(
+                "Account ID must be 64 characters long"
+            )))
+        );
+
+        let update = BankAccountUpdate::Info {
+            account_id: Some(
+                "0x1234123412341234123412341234123412341234123412341234123412341234".to_string(),
+            ),
+        };
+
+        let valid_account = bank_account.try_update(&update).await;
+        assert_eq!(valid_account, Ok(()));
     }
 }

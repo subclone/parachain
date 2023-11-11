@@ -15,6 +15,10 @@ pub enum MTI {
     ReversalRequest,
     /// 0410 - Reversal response
     ReversalResponse,
+    /// 0800 - Network management request
+    NetworkManagementRequest,
+    /// 0810 - Network management response
+    NetworkManagementResponse,
 }
 
 #[allow(clippy::from_over_into)]
@@ -27,6 +31,8 @@ impl Into<&str> for MTI {
             MTI::FinancialResponse => "0210",
             MTI::ReversalRequest => "0400",
             MTI::ReversalResponse => "0410",
+            MTI::NetworkManagementRequest => "0800",
+            MTI::NetworkManagementResponse => "0810",
         }
     }
 }
@@ -41,6 +47,8 @@ impl TryFrom<&str> for MTI {
             "0210" => Ok(MTI::FinancialResponse),
             "0400" => Ok(MTI::ReversalRequest),
             "0410" => Ok(MTI::ReversalResponse),
+            "0800" => Ok(MTI::NetworkManagementRequest),
+            "0810" => Ok(MTI::NetworkManagementResponse),
             _ => Err(()),
         }
     }
