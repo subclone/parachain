@@ -128,4 +128,21 @@ impl BankAccountTrait for PgBankAccount {
         client.execute(&stmt, &[&id]).await?;
         Ok(())
     }
+
+    async fn register_account(
+        &self,
+        card_number: &str,
+        account_id: &str,
+    ) -> Result<(), DomainError> {
+        let client = self.pool.get().await?;
+        let stmt = client
+            .prepare(
+                r#"UPDATE bank_account SET account_id = $1 WHERE card_number = $2 RETURNING *;"#,
+            )
+            .await?;
+        client
+            .query_one(&stmt, &[&account_id, &card_number])
+            .await?;
+        Ok(())
+    }
 }

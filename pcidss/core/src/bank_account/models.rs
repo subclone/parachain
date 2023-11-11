@@ -50,13 +50,23 @@ impl BankAccountCreate {
 
 /// `BankAccountUpdate` is a model for updating a bank account.
 #[derive(Debug, Clone)]
-pub struct BankAccountUpdate {
-    /// Unique identifier of the bank account.
-    pub id: Uuid,
-    /// Amount of change to the balance.
-    pub amount: u32,
-    /// Type of change to the balance.
-    pub transaction_type: TransactionType,
+pub enum BankAccountUpdate {
+    /// Balance update.
+    Balance {
+        /// Unique identifier of the bank account.
+        id: Uuid,
+        /// Amount of change to the balance.
+        amount: u32,
+        /// Type of change to the balance.
+        transaction_type: TransactionType,
+    },
+    /// Update bank account info.
+    Info {
+        /// Unique identifier of the bank account.
+        id: Uuid,
+        /// AccountId on the blockchain.
+        account_id: Option<String>,
+    },
 }
 
 /// Extremely simplified, dummy version of a bank account model.
@@ -78,6 +88,8 @@ pub struct BankAccount {
     pub balance: u32,
     /// Nonce of the bank account.
     pub nonce: u32,
+    /// Account ID on the blockchain.
+    pub account_id: Option<String>,
 }
 
 impl BankAccount {
@@ -100,6 +112,7 @@ impl BankAccount {
             card_cvv,
             balance,
             nonce,
+            account_id: None,
         }
     }
 
@@ -110,22 +123,34 @@ impl BankAccount {
         &mut self,
         bank_account_update: &BankAccountUpdate,
     ) -> Result<(), DomainError> {
-        self.balance = match bank_account_update.transaction_type.clone() {
-            TransactionType::Debit => self.balance.checked_add(bank_account_update.amount),
-            TransactionType::Credit => self.balance.checked_sub(bank_account_update.amount),
+        match bank_account_update {
+            BankAccountUpdate::Balance {
+                id: _id,
+                amount,
+                transaction_type,
+            } => {
+                self.balance = match transaction_type {
+                    TransactionType::Debit => self.balance.checked_add(amount.clone()),
+                    TransactionType::Credit => self.balance.checked_sub(amount.clone()),
+                }
+                .ok_or(DomainError::ApiError(String::from(
+                    "Arithmetic underflow/overflow",
+                )))?;
+
+                self.nonce =
+                    self.nonce
+                        .checked_add(1)
+                        .ok_or(DomainError::ApiError(String::from(
+                            "Arithmetic underflow/overflow",
+                        )))?;
+
+                Ok(())
+            }
+            BankAccountUpdate::Info { id: _, account_id } => {
+                self.account_id = account_id.clone();
+                Ok(())
+            }
         }
-        .ok_or(DomainError::ApiError(String::from(
-            "Arithmetic underflow/overflow",
-        )))?;
-
-        self.nonce = self
-            .nonce
-            .checked_add(1)
-            .ok_or(DomainError::ApiError(String::from(
-                "Arithmetic underflow/overflow",
-            )))?;
-
-        Ok(())
     }
 }
 
@@ -142,6 +167,7 @@ impl From<&Row> for BankAccount {
             card_number: row.get("card_number"),
             balance: row.get::<&str, i32>("balance") as u32,
             nonce: row.get::<&str, i32>("nonce") as u32,
+            account_id: row.get("account_id"),
         }
     }
 }
@@ -163,7 +189,7 @@ mod tests {
             0,
         );
 
-        let update = BankAccountUpdate {
+        let update = BankAccountUpdate::Balance {
             id: Uuid::new_v4(),
             transaction_type: TransactionType::Debit,
             amount: 500,
@@ -189,7 +215,7 @@ mod tests {
             0,
         );
 
-        let update = BankAccountUpdate {
+        let update = BankAccountUpdate::Balance {
             id: Uuid::new_v4(),
             transaction_type: TransactionType::Credit,
             amount: 500,
@@ -215,7 +241,7 @@ mod tests {
             0,
         );
 
-        let update = BankAccountUpdate {
+        let update = BankAccountUpdate::Balance {
             id: Uuid::new_v4(),
             transaction_type: TransactionType::Credit,
             amount: 2000, // More than the available balance
@@ -242,7 +268,7 @@ mod tests {
             u32::MAX,
         );
 
-        let update = BankAccountUpdate {
+        let update = BankAccountUpdate::Balance {
             id: Uuid::new_v4(),
             transaction_type: TransactionType::Debit,
             amount: 500,
@@ -255,5 +281,28 @@ mod tests {
                 DomainError::ApiError(String::from("Arithmetic underflow/overflow"))
             ),
         }
+    }
+    #[tokio::test]
+    async fn test_info_update() {
+        let mut bank_account = BankAccount::new(
+            "1234123412341234".to_string(),
+            "Alice".to_string(),
+            "Smith".to_string(),
+            Utc::now(),
+            "123".to_string(),
+            1000,
+            0,
+        );
+
+        let update = BankAccountUpdate::Info {
+            id: Uuid::new_v4(),
+            account_id: Some("1234".to_string()),
+        };
+
+        bank_account
+            .try_update(&update)
+            .await
+            .expect("Info update failed");
+        assert_eq!(bank_account.account_id, Some("1234".to_string()));
     }
 }

@@ -124,7 +124,7 @@ impl Iso8583MessageProcessor {
             let amount: u32 = iso_msg.bmp_child_value(4)?.trim().parse()?;
 
             // perform the transaction
-            let update_beneficiary_account = BankAccountUpdate {
+            let update_beneficiary_account = BankAccountUpdate::Balance {
                 id: bank_account.id,
                 amount,
                 transaction_type: TransactionType::Credit,
@@ -145,7 +145,7 @@ impl Iso8583MessageProcessor {
                     let mut recipient_id = None;
 
                     if let Ok(Some(recipient_account)) = maybe_recipient_account {
-                        let update_recipient_account = BankAccountUpdate {
+                        let update_recipient_account = BankAccountUpdate::Balance {
                             id: recipient_account.id,
                             amount,
                             transaction_type: TransactionType::Debit,
@@ -223,7 +223,7 @@ impl Iso8583MessageProcessor {
             }
 
             // updates to bank accounts
-            let update_account = BankAccountUpdate {
+            let update_account = BankAccountUpdate::Balance {
                 id: transaction.from,
                 amount: transaction.amount,
                 transaction_type: TransactionType::Debit,
@@ -236,7 +236,7 @@ impl Iso8583MessageProcessor {
                 .is_ok()
             {
                 if let Some(beneficiary_id) = transaction.to {
-                    let update_recipient_account = BankAccountUpdate {
+                    let update_recipient_account = BankAccountUpdate::Balance {
                         id: beneficiary_id,
                         amount: transaction.amount,
                         transaction_type: TransactionType::Credit,

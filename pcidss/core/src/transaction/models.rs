@@ -99,7 +99,7 @@ impl From<&tokio_postgres::Row> for Transaction {
 #[allow(clippy::from_over_into)]
 impl Into<BankAccountUpdate> for &Transaction {
     fn into(self) -> BankAccountUpdate {
-        BankAccountUpdate {
+        BankAccountUpdate::Balance {
             id: self.from,
             amount: self.amount,
             transaction_type: match self.transaction_type {
