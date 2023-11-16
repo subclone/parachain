@@ -4,8 +4,7 @@ WORKDIR /pcidss
 
 COPY . .
 
-RUN  --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/pcidss/target \
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo build --release --locked -p pcidss-oracle
 
 FROM docker.io/debian:bullseye-slim

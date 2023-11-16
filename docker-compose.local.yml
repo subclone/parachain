@@ -9,7 +9,7 @@ services:
       POSTGRES_DB: postgres
       POSTGRES_HOST_AUTH_METHOD: trust
     ports:
-      - 5432:5432
+      - 5433:5433
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     restart: always
@@ -32,6 +32,7 @@ services:
     command:
       - --iso8583-spec=/usr/bin/spec.yaml
       - --database-host=postgres
+      - --database-port=5433
       - --dev
     links:
       - postgres

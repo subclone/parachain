@@ -1,2 +1,2 @@
-target
-postgres-data
+**/target/
+**/postgres-data/

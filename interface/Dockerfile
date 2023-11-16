@@ -1,5 +1,5 @@
 # Use an official Node runtime as the base image
-FROM node:18
+FROM node:20
 
 # Set the working directory in the container
 WORKDIR /usr/src/app
@@ -12,7 +12,7 @@ RUN apt update -y && apt upgrade -y && \
 COPY package.json yarn.lock ./
 
 # Install the application's dependencies using yarn
-RUN yarn install
+RUN yarn global add node-gyp && yarn install --frozen-lockfile
 
 # Copy the rest of the application's files into the container
 COPY . .
@@ -21,7 +21,7 @@ COPY . .
 RUN yarn run build
 
 # Use a lightweight version of Node.js as a second stage build
-FROM node:18-slim
+FROM node:20-slim
 
 WORKDIR /usr/src/app
 
