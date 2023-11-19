@@ -6,11 +6,10 @@ use op_core::postgres::{self, run_migrations, PostgresConfig};
 use std::{io, sync::Arc};
 
 pub mod cli;
-pub mod constants;
-pub mod iso8583;
-pub mod rpc;
+pub mod services;
 pub mod types;
-pub mod watcher;
+
+use services::rpc;
 
 #[cfg(test)]
 mod tests;

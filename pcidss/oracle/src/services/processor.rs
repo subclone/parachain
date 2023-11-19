@@ -15,8 +15,7 @@ use op_core::{
     types::TransactionType,
 };
 
-use super::types::*;
-use crate::constants::{POPULATED_ISO_MSG_FIELD_NUMBERS, RESPONSE_CODE_FIELD_NUMBER};
+use crate::types::{constants::*, *};
 
 /// ISO-8583 message processor
 #[derive(Clone)]

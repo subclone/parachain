@@ -21,6 +21,9 @@ iso8583_rs = { workspace = true }
 jsonrpsee = { workspace = true }
 jsonrpsee-types = { workspace = true }
 
+# Substrate
+subxt = { workspace = true }
+
 # Async dependencies
 async-trait = { workspace = true }
 futures = { workspace = true }
