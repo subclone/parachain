@@ -47,7 +47,7 @@ async fn main() -> io::Result<()> {
 
 	let pg_pool = Arc::new(pg_pool_result.unwrap());
 
-	start_oracle(&args, pg_pool).await?;
+	start_oracle(&args, pg_pool).await.unwrap();
 
 	op_core::utils::block_until_sigint().await;
 

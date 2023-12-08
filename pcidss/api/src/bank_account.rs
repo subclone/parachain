@@ -66,7 +66,7 @@ impl BankAccountTrait for PgBankAccount {
 
 		let stmt = client
             .prepare(
-                r#"UPDATE bank_account SET balance = $1, nonce = $2, account_id = $3 updated_at = $4 WHERE id = $5 RETURNING *;"#,
+                r#"UPDATE bank_account SET balance = $1, nonce = $2, account_id = $3, updated_at = $4 WHERE id = $5 RETURNING *;"#,
             )
             .await?;
 

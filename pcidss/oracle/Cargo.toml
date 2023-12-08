@@ -23,6 +23,7 @@ jsonrpsee-types = { workspace = true }
 
 # Substrate
 subxt = { workspace = true }
+subxt-signer = { workspace = true, features = ["subxt"] }
 
 # Async dependencies
 async-trait = { workspace = true }

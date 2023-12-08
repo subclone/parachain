@@ -178,7 +178,7 @@ messages:
           - name: "amount"
             id: 4
             type: Fixed
-            len: 12
+            len: 20
             data_encoding: ASCII
             position: 4
 

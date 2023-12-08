@@ -44,7 +44,7 @@ messages:
           - name: "amount"
             id: 4
             type: Fixed
-            len: 12
+            len: 20
             data_encoding: ASCII
             position: 4
 
@@ -61,27 +61,6 @@ messages:
             len: 6
             data_encoding: ASCII
             position: 12
-          
-          - name: "mmdd"
-            id: 13
-            type: Fixed
-            len: 4
-            data_encoding: ASCII
-            position: 13
-
-          - name: "card_expiration"
-            id: 14
-            type: Fixed
-            len: 4
-            data_encoding: ASCII
-            position: 14
-
-          - name: "merchant_code"
-            id: 18
-            type: Fixed
-            len: 4
-            data_encoding: ASCII
-            position: 18
 
           - name: "acquiring_id"
             id: 32
@@ -105,34 +84,6 @@ messages:
             len: 2
             data_encoding: ASCII
             position: 39
-
-          - name: "acceptor_id"
-            id: 41
-            type: Fixed
-            len: 8
-            data_encoding: ASCII
-            position: 41
-
-          - name: "acceptor_code"
-            id: 42
-            type: Fixed
-            len: 15
-            data_encoding: ASCII
-            position: 42
-
-          - name: "acceptor_name"
-            id: 43
-            type: Fixed
-            len: 40
-            data_encoding: ASCII
-            position: 43
-
-          - name: "currency_code"
-            id: 49
-            type: Fixed
-            len: 3
-            data_encoding: ASCII
-            position: 49
 
           - name: "private_data"
             id: 126
@@ -186,7 +137,7 @@ messages:
           - name: "amount"
             id: 4
             type: Fixed
-            len: 12
+            len: 20
             data_encoding: ASCII
             position: 4
 
@@ -203,27 +154,6 @@ messages:
             len: 6
             data_encoding: ASCII
             position: 12
-          
-          - name: "mmdd"
-            id: 13
-            type: Fixed
-            len: 4
-            data_encoding: ASCII
-            position: 13
-
-          - name: "card_expiration"
-            id: 14
-            type: Fixed
-            len: 4
-            data_encoding: ASCII
-            position: 14
-
-          - name: "merchant_code"
-            id: 18
-            type: Fixed
-            len: 4
-            data_encoding: ASCII
-            position: 18
 
           - name: "acquiring_id"
             id: 32
@@ -248,34 +178,6 @@ messages:
             data_encoding: ASCII
             position: 39
 
-          - name: "acceptor_id"
-            id: 41
-            type: Fixed
-            len: 8
-            data_encoding: ASCII
-            position: 41
-
-          - name: "acceptor_code"
-            id: 42
-            type: Fixed
-            len: 15
-            data_encoding: ASCII
-            position: 42
-
-          - name: "acceptor_name"
-            id: 43
-            type: Fixed
-            len: 40
-            data_encoding: ASCII
-            position: 43
-
-          - name: "currency_code"
-            id: 49
-            type: Fixed
-            len: 3
-            data_encoding: ASCII
-            position: 49
-
           - name: "private_data"
             id: 126
             type: Variable
@@ -291,3 +193,88 @@ messages:
             data_encoding: ASCII
             len_encoding: ASCII
             position: 127
+
+  - name: "0800 - NetworkManagement"
+    selector:
+      - "0800"
+      - "0810"
+    id: 3
+    fields:
+      - name: "message_type"
+        id: 1
+        type: Fixed
+        len: 4
+        data_encoding: ASCII
+
+      - name: "bitmap"
+        id: 2
+        type: Bitmapped
+        len: 0
+        data_encoding: BINARY
+        children:
+        - name: "card_number"
+          id: 2
+          type: Variable
+          len: 2
+          len_encoding: ASCII
+          data_encoding: ASCII
+          position: 2
+
+        - name: "proc_code"
+          id: 3
+          type: Fixed
+          len: 6
+          data_encoding: ASCII
+          position: 3
+          
+        - name: "amount"
+          id: 4
+          type: Fixed
+          len: 20
+          data_encoding: ASCII
+          position: 4
+
+        - name: "transaction_timestamp"
+          id: 7
+          type: Fixed
+          len: 10
+          data_encoding: ASCII
+          position: 7
+
+        - name: "hhmmss"
+          id: 12
+          type: Fixed
+          len: 6
+          data_encoding: ASCII
+          position: 12
+        
+        - name: "acquiring_id"
+          id: 32
+          type: Variable
+          len: 2
+          data_encoding: ASCII
+          len_encoding: ASCII
+          position: 32
+
+        - name: "track_2_data"
+          id: 35
+          type: Variable
+          len: 2
+          data_encoding: ASCII
+          len_encoding: ASCII
+          position: 35
+        
+        - name: "response_code"
+          id: 39
+          type: Fixed
+          len: 2
+          data_encoding: ASCII
+          position: 39
+
+        - name: "private_data"
+          id: 126
+          type: Variable
+          len: 2
+          data_encoding: ASCII
+          len_encoding: ASCII
+          position: 126

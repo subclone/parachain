@@ -66,6 +66,7 @@ sha2 = "0.10.0"
 
 # Substrate
 subxt = { version = "0.32.1" }
+subxt-signer = { version = "0.32.1" }
 
 # Dev dependencies
 mockall = "0.11.3"

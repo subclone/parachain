@@ -1,14 +1,15 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 use deadpool_postgres::Pool;
 use op_api::{bank_account::PgBankAccount, transaction::PgTransaction};
 use op_core::{bank_account::traits::BankAccountTrait, transaction::traits::TransactionTrait};
+use subxt_signer::SecretUri;
 
 use crate::cli::Cli;
 
 use self::processor::Iso8583MessageProcessor;
 
-mod processor;
+pub mod processor;
 pub mod rpc;
 pub mod watcher;
 
@@ -47,7 +48,12 @@ pub async fn start_oracle(args: &Cli, pg_pool: Arc<Pool>) -> anyhow::Result<()> 
 	});
 
 	// start the watcher service
-	let _ = watcher::watcher(Arc::clone(&processor)).await;
+	let _ = watcher::WatcherService::new(
+		SecretUri::from_str(&args.seed).unwrap(),
+		processor.clone(),
+		args.chain_endpoint.clone(),
+	)
+	.await;
 
 	Ok(())
 }

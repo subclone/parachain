@@ -2,6 +2,7 @@
 #[cfg(test)]
 mod mock;
 mod payment;
+mod register;
 mod reversal;
 
 #[cfg(test)]
@@ -71,8 +72,6 @@ mod prelude {
 
 		// time date
 		msg.set_on(12, &format!("{}", now.format("%H%M%S"))).unwrap();
-		// month day
-		msg.set_on(13, &format!("{}", now.format("%m%d"))).unwrap();
 
 		// card expiration date
 		let exp_date = if name == "Eve" {
@@ -87,14 +86,8 @@ mod prelude {
 				.to_string()
 		};
 
-		msg.set_on(14, &exp_date).unwrap();
-		msg.set_on(18, "4816").unwrap();
 		msg.set_on(32, "123456").unwrap();
 		msg.set_on(35, &format!("{}D{}C{}", card_number, exp_date, cvv)).unwrap();
-		msg.set_on(41, "12345678").unwrap();
-		msg.set_on(42, "ABCDEFGH_000001").unwrap();
-		msg.set_on(43, "Dummy business name, Dummy City, 1200000").unwrap();
-		msg.set_on(49, "997").unwrap();
 		msg.set_on(126, &"0".repeat(99)).unwrap();
 
 		msg

@@ -91,24 +91,21 @@ pub(crate) type DevAccount = (&'static str, &'static str, &'static str, u32);
 
 /// Constants used in the app
 pub mod constants {
+	/// ISO8583 Pallet ID converted to `AccountId32`
+	pub const PALLET_ACCOUNT: &str =
+		"0x6d6f646c70792f69736f38350000000000000000000000000000000000000000";
+
 	/// Field numbers that we populate in the ISO message
-	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 16] = [
+	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 9] = [
 		0, // Message Type Indicator or MTI
 		2, // Primary account number, card number
 		3, // Processing code
-		4, /* Amount is 12 characters long, check the length of amount and pad it with `0`
+		4, /* Amount is 20 characters long, check the length of amount and pad it with `0`
 		    * from the left */
 		7,   // Transmission date, combination of 13 and 12
 		12,  // HHMMSS format of transaction time
-		13,  // MMDD format of transaction date
-		14,  // Card expiration date
-		18,  // Merchant Category Code
 		32,  // Acquiring institution ID
 		35,  // Track-2 Data
-		41,  // Card Acceptor Terminal Identification
-		42,  // Card Acceptor Identification Code
-		43,  // Card Acceptor Name/Location
-		49,  // Currency Code, Transaction, USD - 997, EUR - 978
 		126, // Private data
 	];
 
