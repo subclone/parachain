@@ -17,7 +17,7 @@ async fn test_register() {
 	let mut new_msg = get_new_iso_msg(spec, mti.clone(), ALICE);
 	new_msg.set_on(4, &"0".repeat(20)).unwrap();
 
-	let account_id_hex = format!("0x{}", "00".repeat(32));
+	let account_id_hex = format!("0x{}", "01".repeat(32));
 	new_msg.set_on(126, &account_id_hex).unwrap();
 
 	let mut msg_raw = new_msg.assemble().unwrap();
@@ -47,5 +47,5 @@ async fn test_register() {
 
 	let charlie_account = get_bank_account_by_card_number(&api, &CHARLIE.1).await;
 
-	assert_eq!(charlie_account.account_id, None);
+	assert_eq!(charlie_account.account_id, Some(CHARLIE.4.trim_start_matches("0x").to_string()));
 }

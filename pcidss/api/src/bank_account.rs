@@ -92,11 +92,13 @@ impl BankAccountTrait for PgBankAccount {
 	) -> Result<BankAccount, DomainError> {
 		let client = self.pool.get().await?;
 
-		let stmt = client
-            .prepare(
-                r#"INSERT INTO bank_account (id, card_number, card_holder_first_name, card_holder_last_name, card_expiration_date, card_cvv, balance, nonce) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;"#,
-            )
-            .await?;
+		let query_string = if let Some(_) = &bank_account_create.account_id {
+			r#"INSERT INTO bank_account (id, card_number, card_holder_first_name, card_holder_last_name, card_expiration_date, card_cvv, balance, nonce, account_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;"#
+		} else {
+			r#"INSERT INTO bank_account (id, card_number, card_holder_first_name, card_holder_last_name, card_expiration_date, card_cvv, balance, nonce) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;"#
+		};
+
+		let stmt = client.prepare(query_string).await?;
 
 		let row = &client
 			.query_one(
@@ -110,6 +112,7 @@ impl BankAccountTrait for PgBankAccount {
 					&bank_account_create.card_cvv,
 					&(bank_account_create.balance as i32), // Initial balance is 0
 					&0_i32,                                // Initial nonce is 0
+					&bank_account_create.account_id,
 				],
 			)
 			.await?;

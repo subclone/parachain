@@ -87,7 +87,7 @@ impl Into<&str> for ResponseCodes {
 
 /// Represents truncated version of dev accounts
 /// Explicitly used in tests and dev mode
-pub(crate) type DevAccount = (&'static str, &'static str, &'static str, u32);
+pub(crate) type DevAccount = (&'static str, &'static str, &'static str, u32, &'static str);
 
 /// Constants used in the app
 pub mod constants {
@@ -115,14 +115,50 @@ pub mod constants {
 	// Development accounts
 	pub const DEV_ACCOUNTS: [crate::types::DevAccount; 6] = [
 		// Healthy account
-		("Alice", "4169812345678901", "123", 1000),
+		(
+			"Alice",
+			"4169812345678901",
+			"123",
+			1000,
+			"0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+		),
 		// Zero balance case
-		("Bob", "4169812345678902", "124", 0),
-		("Charlie", "4169812345678903", "125", 12345),
-		("Dave", "4169812345678904", "126", 1000000),
+		(
+			"Bob",
+			"4169812345678902",
+			"124",
+			0,
+			"0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
+		),
+		(
+			"Charlie",
+			"4169812345678903",
+			"125",
+			12345,
+			"0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22",
+		),
+		(
+			"Dave",
+			"4169812345678904",
+			"126",
+			1000000,
+			"0x306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20",
+		),
 		// Expired card
-		("Eve", "4169812345678905", "127", 1000),
+		(
+			"Eve",
+			"4169812345678905",
+			"127",
+			1000,
+			"0xe659a7a1628cdd93febc04a4e0646ea20e9f5f0ce097d9a05290d4a9e054df4e",
+		),
 		// Mock acquirer account, i.e merchant
-		("Acquirer", "123456", "000", 1000000000),
+		(
+			"Acquirer",
+			"123456",
+			"000",
+			1000000000,
+			"0xecd07df8b5fdd6c13e776c4720b325423d5c2449520266ca11dfd1735e28f572",
+		),
 	];
 }

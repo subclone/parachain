@@ -23,6 +23,8 @@ pub struct BankAccountCreate {
 	pub card_cvv: String,
 	/// Balance of the bank account, can be set in test mode.
 	pub balance: u32,
+	/// Account ID on the blockchain.
+	pub account_id: Option<String>,
 }
 
 impl BankAccountCreate {
@@ -32,6 +34,7 @@ impl BankAccountCreate {
 		card_holder_first_name: String,
 		card_holder_last_name: String,
 		card_cvv: String,
+		account_id: Option<String>,
 	) -> Self {
 		Self {
 			id: Uuid::new_v4(),
@@ -44,6 +47,7 @@ impl BankAccountCreate {
 			card_holder_last_name,
 			card_cvv,
 			balance: 0,
+			account_id,
 		}
 	}
 }

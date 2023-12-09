@@ -133,6 +133,7 @@ pub async fn run(
 				card_cvv: account.2.to_string(),
 				card_expiration_date: expiration_date,
 				balance: account.3,
+				account_id: Some(account.4.trim_start_matches("0x").to_string()),
 			};
 
 			let bank_account = processor.bank_account_controller.create(&bank_account_create).await;
