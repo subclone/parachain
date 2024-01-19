@@ -93,6 +93,8 @@ impl Iso8583MessageProcessor {
 			self.bank_account_controller.find_by_card_number(&acquiring_institution_id)
 		);
 
+		// nonce check
+
 		if let Ok(Some(bank_account)) = maybe_beneficiary_account {
 			let validation_result = self.validate_with_bank_account(iso_msg, &bank_account).await?;
 

@@ -9,8 +9,15 @@ use op_core::{
 	postgres::mock_init,
 	transaction::traits::TransactionTrait,
 };
+use subxt::{OnlineClient, SubstrateConfig};
 
-use crate::{services::processor::Iso8583MessageProcessor, types::constants::DEV_ACCOUNTS};
+use crate::{
+	services::{processor::Iso8583MessageProcessor, watcher::WatcherService},
+	types::constants::DEV_ACCOUNTS,
+};
+
+#[subxt::subxt(runtime_metadata_path = "./iso-8583-chain.scale")]
+pub mod iso_8583_chain {}
 
 /// Mock implementation of the Oracle API server.
 #[derive(Clone)]

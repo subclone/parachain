@@ -199,7 +199,7 @@ impl WatcherService {
 	///
 	/// This is called after an ISO-8583 message has been processed by the ISO8583 message
 	/// processor, both from the watcher service or the RPC server
-	pub async fn submit_finality(
+	pub(crate) async fn submit_finality(
 		&self,
 		from: AccountId32,
 		to: AccountId32,
