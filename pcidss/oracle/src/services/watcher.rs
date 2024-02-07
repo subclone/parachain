@@ -1,6 +1,9 @@
 //! Watcher service subscribes to Substrate chain to maintain constant sync between the chain and
 //! the oracle
-use crate::types::{constants::PALLET_ACCOUNT, MTI};
+use crate::types::{
+	constants::{PALLET_ACCOUNT, PALLET_NAME},
+	MTI,
+};
 
 use self::iso_8583_chain::runtime_types::bounded_collections::bounded_vec::BoundedVec;
 
@@ -92,7 +95,7 @@ impl WatcherService {
 	) -> anyhow::Result<(), Box<dyn std::error::Error>> {
 		log::info!("Event: {:?}", event.pallet_name());
 
-		if event.pallet_name().contains("ISO8583") {
+		if event.pallet_name().contains(PALLET_NAME) {
 			let event_name = event.variant_name();
 
 			let event_id = format!("{}-{}", block_number, event.index());
@@ -188,7 +191,7 @@ impl WatcherService {
 	) -> anyhow::Result<(), Box<dyn std::error::Error>> {
 		let (from_hex, to_hex): (String, String) = (
 			from.0.iter().map(|b| format!("{:02x}", b)).collect(),
-			from.0.iter().map(|b| format!("{:02x}", b)).collect(),
+			to.0.iter().map(|b| format!("{:02x}", b)).collect(),
 		);
 
 		let (from_bank_account, to_bank_account) = futures::join!(
@@ -238,6 +241,7 @@ impl WatcherService {
 		);
 
 		let from_bank_account = from_bank_account?.ok_or("From bank account not found")?;
+
 		// simply try to unwrap the transaction, if it's not found, then it's an error
 		// we do this to avoid doing unnecessary ISO8583 processing and as a naive DDOS
 		// protection

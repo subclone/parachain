@@ -95,6 +95,9 @@ pub mod constants {
 	pub const PALLET_ACCOUNT: &str =
 		"0x6d6f646c70792f69736f38350000000000000000000000000000000000000000";
 
+	/// Pallet prefix
+	pub const PALLET_NAME: &str = "ISO8583";
+
 	/// Field numbers that we populate in the ISO message
 	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 9] = [
 		0, // Message Type Indicator or MTI
