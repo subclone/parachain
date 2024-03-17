@@ -3,7 +3,7 @@ use std::{str::FromStr, sync::Arc};
 use deadpool_postgres::Pool;
 use op_api::{bank_account::PgBankAccount, transaction::PgTransaction};
 use op_core::{bank_account::traits::BankAccountTrait, transaction::traits::TransactionTrait};
-use subxt_signer::SecretUri;
+use subxt_signer::{sr25519::PublicKey, SecretUri};
 
 use crate::cli::Cli;
 
@@ -39,7 +39,10 @@ pub async fn start_oracle(args: &Cli, pg_pool: Arc<Pool>) -> anyhow::Result<()> 
 	tokio::spawn({
 		let processor = Arc::clone(&processor);
 		async move {
-			let result = rpc::run(processor, args.rpc_port, args.dev).await;
+			let ocw_signer = PublicKey(
+				hex::decode(&args.ocw_signer).unwrap().try_into().expect("valid public key"),
+			);
+			let result = rpc::run(processor, args.rpc_port, args.dev, ocw_signer).await;
 			if result.is_err() {
 				log::error!("Could not start RPC: {}", result.unwrap_err().to_string());
 				std::process::exit(1)
@@ -47,13 +50,19 @@ pub async fn start_oracle(args: &Cli, pg_pool: Arc<Pool>) -> anyhow::Result<()> 
 		}
 	});
 
-	// start the watcher service
-	let _ = watcher::WatcherService::new(
-		SecretUri::from_str(&args.seed).unwrap(),
-		processor.clone(),
-		args.chain_endpoint.clone(),
-	)
-	.await;
+	// spawn the watcher service
+	tokio::spawn({
+		let processor = Arc::clone(&processor);
+		async move {
+			let seed = SecretUri::from_str(&args.seed).unwrap();
+			let watcher = watcher::WatcherService::new(seed, processor, args.ws_url).await.unwrap();
+			let result = watcher.start().await;
+			if result.is_err() {
+				log::error!("Could not start watcher: {}", result.unwrap_err().to_string());
+				std::process::exit(1)
+			}
+		}
+	});
 
 	Ok(())
 }

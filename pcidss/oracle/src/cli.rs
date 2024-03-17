@@ -35,6 +35,15 @@ pub struct Cli {
 		default_value = "0xe5be9a5092b81bca64be81d212e7f2f9eba183bb7a90954f7b76361f6edb5c0a//Alice"
 	)]
 	pub seed: String,
+	/// Substrate chain websocket endpoint
+	#[arg(long, default_value = "ws://localhost:9944")]
+	pub ws_url: String,
+	/// OCW signer
+	#[arg(
+		long,
+		default_value = "d2bf4b844dfefd6772a8843e669f943408966a977e3ae2af1dd78e0f55f4df67"
+	)]
+	pub ocw_signer: String,
 }
 
 impl Cli {

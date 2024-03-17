@@ -154,7 +154,6 @@ impl WatcherService {
 
 		msg.set_on(7, &format!("{}", now.format("%m%d%H%M%S")))?;
 		msg.set_on(12, &format!("{}", now.format("%H%M%S")))?;
-		msg.set_on(13, &format!("{}", now.format("%m%d")))?;
 
 		if let Some(to) = to {
 			msg.set_on(32, &to.id.to_string())?;
@@ -164,8 +163,7 @@ impl WatcherService {
 			35,
 			&format!("{}D{}C{}", from.card_number, from.card_expiration_date, from.card_cvv),
 		)?;
-		msg.set_on(43, "Dummy business name, Dummy City, 1200000")?;
-		msg.set_on(49, "997")?;
+
 		msg.set_on(127, &event_id)?;
 
 		if let Some(hash) = hash {

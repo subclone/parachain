@@ -30,7 +30,7 @@ export default class Server {
   constructor() {
     this.app = express();
     this.env = process.env.NODE_ENV || "development";
-    this.port = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+    this.port = process.env.PORT ? parseInt(process.env.PORT) : 3001;
     this.oracle_rpc = new WsProvider(
       process.env.ORACLE_RPC_URL || "ws://0.0.0.0:3030",
       1000
@@ -79,7 +79,60 @@ export default class Server {
       }
     );
 
+    router.post(
+      "/balances",
+      async (req: express.Request, res: express.Response) => {
+        this.fetchAccountsBalances(req, res);
+      }
+    );
+
     this.app.use(router);
+  }
+
+  // Fetch batch accounts balances from oracle RPC
+  private async fetchAccountsBalances(
+    req: express.Request,
+    res: express.Response
+  ) {
+    try {
+      console.log("Fetching accounts balances", req.body);
+      let accounts = req.body?.accounts || [];
+      let signature = req.body?.signature || "";
+
+      if (accounts.length === 0 || signature === "") {
+        res.status(400).json({
+          status: false,
+          message: "Accounts are required",
+        });
+        return;
+      }
+
+      // convert signature to ArrayBuffer, it is string in hex format now
+      signature = Array.from(Buffer.from(signature, "hex"));
+
+      let msgResponse = await this.oracle_rpc.send(
+        "pcidss_get_batch_balances",
+        [signature, accounts]
+      );
+
+      console.log(
+        "Response from oracle",
+        msgResponse.map((x: any[]) => {
+          return { accountId: x[0], balance: x[1] };
+        })
+      );
+
+      res.status(200).json(
+        msgResponse.map((x: any[]) => {
+          return { accountId: x[0], balance: x[1] };
+        })
+      );
+    } catch {
+      res.status(500).json({
+        status: false,
+        message: "Internal server error",
+      });
+    }
   }
 
   // POS implementation

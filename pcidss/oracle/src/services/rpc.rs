@@ -11,6 +11,7 @@ use op_core::{
 	transaction::models::Transaction,
 };
 use std::{error::Error, net::SocketAddr, sync::Arc};
+use subxt_signer::{sr25519, sr25519::Signature};
 
 use super::processor::Iso8583MessageProcessor;
 use crate::types::constants::DEV_ACCOUNTS;
@@ -29,12 +30,24 @@ pub trait OracleApi<IsoMsg> {
 	/// Get bank account by card number
 	#[method(name = "get_bank_account")]
 	async fn get_bank_account(&self, card_number: String) -> RpcResult<BankAccount>;
+
+	/// Get balance by on-chain account id
+	///
+	/// Only the OCW can call this method
+	#[method(name = "get_batch_balances")]
+	async fn get_batch_balances(
+		&self,
+		signature: Vec<u8>,
+		account_ids: Vec<String>,
+	) -> RpcResult<Vec<(String, u32)>>;
 }
 
 /// PCIDSS Compliant Oracle RPC API implementation
 pub struct OracleApiImpl {
 	/// ISO8583 message processor
 	pub processor: Arc<Iso8583MessageProcessor>,
+	/// OCW signer account
+	pub signer: sr25519::PublicKey,
 }
 
 #[async_trait]
@@ -105,6 +118,55 @@ impl OracleApiServer<IsoMsg> for OracleApiImpl {
 
 		ba.ok_or(ErrorCode::InvalidParams.into())
 	}
+
+	async fn get_batch_balances(
+		&self,
+		signature: Vec<u8>,
+		account_ids: Vec<String>,
+	) -> RpcResult<Vec<(String, u32)>> {
+		log::debug!("Received get_batch_balances request: {:?} {:?}", signature, account_ids);
+		let signature = signature.try_into().map_err(|_| ErrorCode::InvalidParams)?;
+
+		let message = {
+			let mut message = Vec::new();
+			message.push('[' as u8);
+			for account_id in &account_ids {
+				message.push('"' as u8);
+				message.extend_from_slice(account_id.as_bytes());
+				message.push('"' as u8);
+				message.push(',' as u8);
+			}
+			message.pop();
+			message.push(']' as u8);
+			message
+		};
+
+		log::debug!("Message: {:?}", message);
+		if !sr25519::verify(&Signature(signature), &message[..], &self.signer) {
+			log::error!("Invalid signature");
+			return Err(ErrorCode::InvalidParams.into());
+		}
+
+		let mut balances = Vec::new();
+
+		for account_id in account_ids {
+			let ba = self
+				.processor
+				.bank_account_controller
+				.find_by_account_id(&account_id)
+				.await
+				.map_err(|e| {
+				log::debug!("Error: {:?}", e);
+				ErrorCode::InvalidParams
+			})?;
+
+			if let Some(ba) = ba {
+				balances.push((account_id, ba.balance));
+			}
+		}
+
+		Ok(balances)
+	}
 }
 
 /// Run ISO8583 Message Processor
@@ -112,6 +174,7 @@ pub async fn run(
 	processor: Arc<Iso8583MessageProcessor>,
 	rpc_port: u16,
 	dev_mode: bool,
+	ocw_signer: sr25519::PublicKey,
 ) -> anyhow::Result<(), Box<dyn Error>> {
 	log::info!("Starting ISO8583 processor");
 
@@ -148,7 +211,7 @@ pub async fn run(
 	}
 
 	// Run RPC server
-	let addr = run_server(processor, rpc_port).await?;
+	let addr = run_server(processor, rpc_port, ocw_signer).await?;
 	let url = format!("ws://{}", addr);
 
 	log::info!("RPC server listening on {}", url);
@@ -160,11 +223,12 @@ pub async fn run(
 async fn run_server(
 	processor: Arc<Iso8583MessageProcessor>,
 	rpc_port: u16,
+	ocw_signer: sr25519::PublicKey,
 ) -> anyhow::Result<SocketAddr> {
 	let server = Server::builder().build(format!("0.0.0.0:{}", rpc_port)).await?;
 
 	let addr = server.local_addr()?;
-	let oracle_impl = OracleApiImpl { processor };
+	let oracle_impl = OracleApiImpl { processor, signer: ocw_signer };
 
 	let server_handle = server.start(oracle_impl.into_rpc());
 
