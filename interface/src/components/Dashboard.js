@@ -229,7 +229,7 @@ const Dashboard = ({ state }) => {
                         </Table.Cell>
                         <Table.Cell width={3}>${transaction.amount}</Table.Cell>
                         <Table.Cell width={3}>
-                          {transaction.transaction_type === 1
+                          {currentAccount.id === transaction.from
                             ? "Credit"
                             : "Debit"}
                         </Table.Cell>

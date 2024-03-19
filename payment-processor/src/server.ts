@@ -112,7 +112,7 @@ export default class Server {
 
       let msgResponse = await this.oracle_rpc.send(
         "pcidss_get_batch_balances",
-        [signature, accounts]
+        [signature.slice(1), accounts]
       );
 
       console.log(

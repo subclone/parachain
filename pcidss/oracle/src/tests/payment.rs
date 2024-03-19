@@ -136,7 +136,7 @@ async fn test_payment() {
 	let dave_txs = api
 		.processor
 		.transaction_controller
-		.find_by_beneficiary(&dave_account.id)
+		.find_by_bank_account_id(&dave_account.id)
 		.await
 		.unwrap();
 

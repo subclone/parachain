@@ -47,6 +47,7 @@ impl WatcherService {
 		ws_url: String,
 	) -> Result<Self, &'static str> {
 		let keypair = Keypair::from_uri(&seed).map_err(|_| "Invalid seed phrase")?;
+		log::info!("Using keypair: {:?}", hex::encode(&keypair.public_key()));
 
 		let client = OnlineClient::<SubstrateConfig>::from_url(&ws_url)
 			.await
@@ -71,8 +72,12 @@ impl WatcherService {
 						for event_result in events.iter() {
 							match event_result {
 								Ok(event) => {
-									if let Err(_) = self.process_event(block_number, &event).await {
-										log::error!("Error processing event: {:?}", event.index());
+									if let Err(e) = self.process_event(block_number, &event).await {
+										log::error!(
+											"Error processing event: {:?} {:?}",
+											e,
+											event.index()
+										);
 									}
 								},
 								Err(e) => log::error!("Error decoding event: {}", e),
@@ -156,12 +161,19 @@ impl WatcherService {
 		msg.set_on(12, &format!("{}", now.format("%H%M%S")))?;
 
 		if let Some(to) = to {
-			msg.set_on(32, &to.id.to_string())?;
+			msg.set_on(32, &to.card_number)?;
+		} else {
+			msg.set_on(32, &from.card_number)?;
 		}
 
 		msg.set_on(
 			35,
-			&format!("{}D{}C{}", from.card_number, from.card_expiration_date, from.card_cvv),
+			&format!(
+				"{}D{}C{}",
+				from.card_number,
+				from.card_expiration_date.format("%m%y").to_string(),
+				from.card_cvv
+			),
 		)?;
 
 		msg.set_on(127, &event_id)?;
@@ -187,10 +199,7 @@ impl WatcherService {
 		amount: u128,
 		event_id: &str,
 	) -> anyhow::Result<(), Box<dyn std::error::Error>> {
-		let (from_hex, to_hex): (String, String) = (
-			from.0.iter().map(|b| format!("{:02x}", b)).collect(),
-			to.0.iter().map(|b| format!("{:02x}", b)).collect(),
-		);
+		let (from_hex, to_hex) = (hex::encode(from.0), hex::encode(to.0));
 
 		let (from_bank_account, to_bank_account) = futures::join!(
 			self.processor.bank_account_controller.find_by_account_id(&from_hex.as_str()),
@@ -243,7 +252,11 @@ impl WatcherService {
 		// simply try to unwrap the transaction, if it's not found, then it's an error
 		// we do this to avoid doing unnecessary ISO8583 processing and as a naive DDOS
 		// protection
-		let _ = maybe_transaction?.ok_or("Transaction not found")?;
+		let transaction = maybe_transaction?.ok_or("Transaction not found")?;
+
+		if transaction.from != from_bank_account.id {
+			return Err("Transaction does not belong to the bank account".into());
+		}
 
 		let mut iso_msg_raw = self
 			.compose_iso_msg(&from_bank_account, None, Some(&hash_hex), 0, &event_id)
@@ -251,10 +264,17 @@ impl WatcherService {
 
 		let (_, iso_msg) = self.processor.process(&mut iso_msg_raw).await?;
 
+		let updated_from = iso_msg.bmp_child_value(127).unwrap_or(PALLET_ACCOUNT.to_string());
+
 		self.submit_finality(
+			AccountId32(
+				hex::decode(updated_from)
+					.expect("valid hex; qed")
+					.try_into()
+					.expect("valid; qed"),
+			),
 			from,
-			AccountId32(PALLET_ACCOUNT.as_bytes().try_into().expect("valid account;qed")),
-			0,
+			transaction.amount as u128,
 			iso_msg,
 			&event_id,
 		)
@@ -292,7 +312,7 @@ impl WatcherService {
 		};
 
 		let finalised_transacton = FinalisedTransaction {
-			hash: H256::from_str(tx_hash.strip_prefix("0x").unwrap_or_default())
+			hash: H256::from_str(tx_hash.strip_prefix("0x").unwrap_or(tx_hash))
 				.expect("valid hash; qed"),
 			event_id: BoundedVec::<u8>(event_id.as_bytes().to_vec()),
 			from,

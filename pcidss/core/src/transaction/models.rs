@@ -70,7 +70,7 @@ impl From<&tokio_postgres::Row> for Transaction {
 		Self {
 			id: row.get("id"),
 			hash: row.get("hash"),
-			from: row.get("beneficiary"),
+			from: row.get("source"),
 			to: row.get("recipient"),
 			amount: row.get::<&str, i32>("amount") as u32,
 			transaction_type: row.get::<&str, i32>("transaction_type") as u32,

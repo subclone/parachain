@@ -41,7 +41,7 @@ mod prelude {
 		api: &MockProcessorImpl,
 		id: &Uuid,
 	) -> Vec<Transaction> {
-		api.processor.transaction_controller.find_by_beneficiary(id).await.unwrap()
+		api.processor.transaction_controller.find_by_bank_account_id(id).await.unwrap()
 	}
 
 	/// Creates new mock ISO-8583 message
@@ -116,7 +116,7 @@ mod prelude {
 		let beneficiary_txs = api
 			.processor
 			.transaction_controller
-			.find_by_beneficiary(&beneficiary_account.id)
+			.find_by_bank_account_id(&beneficiary_account.id)
 			.await
 			.unwrap();
 

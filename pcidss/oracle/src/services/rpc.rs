@@ -89,8 +89,8 @@ impl OracleApiServer<IsoMsg> for OracleApiImpl {
 
 		self.processor
 			.transaction_controller
-			.find_by_beneficiary(&bank_account.id)
-			.await
+			.find_by_bank_account_id(&bank_account.id)
+			.await 
 			.map_err(|err| {
 				let error_code = match err {
 					DomainError::ApiError(_) => ErrorCode::InternalError,
@@ -124,9 +124,10 @@ impl OracleApiServer<IsoMsg> for OracleApiImpl {
 		signature: Vec<u8>,
 		account_ids: Vec<String>,
 	) -> RpcResult<Vec<(String, u32)>> {
-		log::debug!("Received get_batch_balances request: {:?} {:?}", signature, account_ids);
 		let signature = signature.try_into().map_err(|_| ErrorCode::InvalidParams)?;
 
+		// message is JSON serialized array of account ids, so we need 
+		// to include the brackets and quotes in the message
 		let message = {
 			let mut message = Vec::new();
 			message.push('[' as u8);
@@ -141,7 +142,6 @@ impl OracleApiServer<IsoMsg> for OracleApiImpl {
 			message
 		};
 
-		log::debug!("Message: {:?}", message);
 		if !sr25519::verify(&Signature(signature), &message[..], &self.signer) {
 			log::error!("Invalid signature");
 			return Err(ErrorCode::InvalidParams.into());
@@ -156,7 +156,7 @@ impl OracleApiServer<IsoMsg> for OracleApiImpl {
 				.find_by_account_id(&account_id)
 				.await
 				.map_err(|e| {
-				log::debug!("Error: {:?}", e);
+				log::error!("Error: {:?}", e);
 				ErrorCode::InvalidParams
 			})?;
 
@@ -176,9 +176,7 @@ pub async fn run(
 	dev_mode: bool,
 	ocw_signer: sr25519::PublicKey,
 ) -> anyhow::Result<(), Box<dyn Error>> {
-	log::info!("Starting ISO8583 processor");
-
-	if dev_mode {
+	if dev_mode { 
 		info!("Running in dev mode, inserting dev accounts");
 		// insert dev accounts
 		for account in DEV_ACCOUNTS.iter() {

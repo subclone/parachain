@@ -86,16 +86,14 @@ impl Iso8583MessageProcessor {
 
 		// extract necessary fields from the ISO message
 		let card_number = iso_msg.bmp_child_value(2)?;
-		let acquiring_institution_id = iso_msg.bmp_child_value(32)?;
+		let beneficiary = iso_msg.bmp_child_value(32)?;
 
-		let (maybe_beneficiary_account, maybe_recipient_account) = futures::join!(
+		let (maybe_from_account, maybe_recipient_account) = futures::join!(
 			self.bank_account_controller.find_by_card_number(&card_number),
-			self.bank_account_controller.find_by_card_number(&acquiring_institution_id)
+			self.bank_account_controller.find_by_card_number(&beneficiary)
 		);
 
-		// nonce check
-
-		if let Ok(Some(bank_account)) = maybe_beneficiary_account {
+		if let Ok(Some(bank_account)) = maybe_from_account {
 			let validation_result = self.validate_with_bank_account(iso_msg, &bank_account).await?;
 
 			// early return if not approved
@@ -223,9 +221,16 @@ impl Iso8583MessageProcessor {
 						amount: transaction.amount,
 						transaction_type: TransactionType::Credit,
 					};
-					self.bank_account_controller
+					let updated_bank_account = self
+						.bank_account_controller
 						.update(&beneficiary_id, &update_recipient_account)
 						.await?;
+
+					// add `to` accountid` to the ISO message
+					iso_msg.set_on(
+						127,
+						&updated_bank_account.account_id.unwrap_or(PALLET_ACCOUNT.to_string()),
+					)?;
 				}
 
 				// Flags the transaction as reversed

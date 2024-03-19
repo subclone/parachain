@@ -93,13 +93,13 @@ pub(crate) type DevAccount = (&'static str, &'static str, &'static str, u32, &'s
 pub mod constants {
 	/// ISO8583 Pallet ID converted to `AccountId32`
 	pub const PALLET_ACCOUNT: &str =
-		"0x6d6f646c70792f69736f38350000000000000000000000000000000000000000";
-
+		"6d6f646c70792f69736f38350000000000000000000000000000000000000000";
+		
 	/// Pallet prefix
 	pub const PALLET_NAME: &str = "ISO8583";
 
 	/// Field numbers that we populate in the ISO message
-	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 9] = [
+	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 10] = [
 		0, // Message Type Indicator or MTI
 		2, // Primary account number, card number
 		3, // Processing code
@@ -110,6 +110,7 @@ pub mod constants {
 		32,  // Acquiring institution ID
 		35,  // Track-2 Data
 		126, // Private data
+		127, // Private data
 	];
 
 	/// Response Code field
