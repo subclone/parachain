@@ -10,11 +10,11 @@ Main page is a simulation of a bank dashboard, where you can see basic details a
 
 This is a React app and while running in development node, you need to run the [PCIDSS Oracle Gateway](../pcidss/README.md) and [Payment Processor](../payment-processor/README.md) in separate terminals. Please follow the instructions in the respective README files.
 
-It also uses the payment processor server running at `http://localhost:3000` as a proxy. If you want to change the port, you need to update the `package.json` file.
+It also uses the payment processor server running at `http://localhost:3001` as a proxy. If you want to change the port, you need to update the `package.json` file.
 
 1. Run `yarn` to install dependencies
 2. Run `yarn start` to start the interface
-3. Open `http://localhost:3001` in your browser
+3. Open `http://localhost:3002` in your browser
 
 ## How to use
 
@@ -63,6 +63,18 @@ Here are the test accounts you can use:
     "card_cvv": "000",
     "balance": 1000000000,
     "card_expiry": "09/27"
+  },
+  {
+    "card_holder_first_name": "Alice_stash",
+    "card_number": "4169812345678908",
+    "card_cvv": "999",
+    "balance": 0,
+  },
+  {
+    "card_holder_first_name": "Bob_stash",
+    "card_number": "4169812345678909",
+    "card_cvv": "888",
+    "balance": 0,
   },
 ]
 ```

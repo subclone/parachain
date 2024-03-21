@@ -3,35 +3,48 @@
 import React, { useEffect, useState } from "react";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import toast, { Toaster } from "react-hot-toast";
-import { Link } from "react-router-dom";
-import { Button, Dropdown, Grid, Label, Table } from "semantic-ui-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button, Grid, Label, Table } from "semantic-ui-react";
+import { u8aToHexCompact, useSubstrateState } from "../substrate-lib";
+import { formatAmount } from "../utils";
 
 const Dashboard = ({ state }) => {
-  let [currentAccount, setCurrentAccount] = useState(state.accounts[0]);
+  const { apiState, currentAccount } = useSubstrateState();
+  const navigate = useNavigate();
+
   let [transactions, setTransactions] = useState([]);
   let [mutated, setMutated] = useState(true);
+  let [bankAccount, setBankAccount] = useState(null);
 
   useEffect(() => {
     // Update the current currentAccount
     const fetchAccount = async () => {
       console.log("Ws is ready to use", state.oracleRpc.isConnected);
 
+      let hex_pub_key = u8aToHexCompact(currentAccount.publicKey);
+
       const bankAccount = await state.oracleRpc.send(
         "pcidss_get_bank_account",
-        [currentAccount.card_number]
+        [hex_pub_key]
       );
+
+      if (!bankAccount) {
+        // push to `/register` if no bank account is found
+        navigate("/register");
+        return;
+      }
 
       const transactions = await state.oracleRpc.send(
         "pcidss_get_transactions",
-        [currentAccount.card_number]
+        [hex_pub_key]
       );
 
-      setCurrentAccount(bankAccount);
+      setBankAccount(bankAccount);
       setTransactions(transactions);
     };
-    fetchAccount();
+    if (currentAccount && apiState === "READY") fetchAccount();
     setMutated(false);
-  }, [mutated]);
+  }, [mutated, currentAccount, apiState]);
 
   const DEV_MODE = process.env.MODE === "dev";
 
@@ -68,35 +81,10 @@ const Dashboard = ({ state }) => {
     <div className="sr-content">
       <Toaster position="top-center" reverseOrder={false} />
       <Grid columns={1}>
-        <Grid columns={4}>
-          <Grid.Column></Grid.Column>
-          <Grid.Column></Grid.Column>
-          <Grid.Column></Grid.Column>
-          <Grid.Column>
-            <Dropdown
-              placeholder="Select Account"
-              fluid
-              selection
-              value={currentAccount?.card_holder_first_name}
-              options={state.accounts.map((account) => ({
-                key: account.card_number,
-                text: account?.card_holder_first_name,
-                value: account?.card_holder_first_name,
-              }))}
-              onChange={(e, { value }) => {
-                const account = state.accounts.find(
-                  (account) => account?.card_holder_first_name === value
-                );
-                setCurrentAccount(account);
-                setMutated(true);
-              }}
-            />
-          </Grid.Column>
-        </Grid>
         <Grid.Row>
           <Grid.Column>
-            <h1>Balances</h1>
-            {!currentAccount ? (
+            <h1>Account</h1>
+            {!bankAccount ? (
               <Label basic color="yellow">
                 No accounts to be shown
               </Label>
@@ -123,9 +111,9 @@ const Dashboard = ({ state }) => {
                       <strong></strong>
                     </Table.Cell>
                   </Table.Row>
-                  <Table.Row key={currentAccount.card_number}>
+                  <Table.Row key={bankAccount.card_number}>
                     <Table.Cell width={3} textAlign="right">
-                      {currentAccount.card_holder_first_name}
+                      {bankAccount.card_holder_first_name}
                     </Table.Cell>
                     <Table.Cell width={3}>
                       <span
@@ -134,9 +122,9 @@ const Dashboard = ({ state }) => {
                           minWidth: "20em",
                         }}
                       >
-                        {currentAccount.card_number}
+                        {bankAccount.card_number}
                       </span>
-                      <CopyToClipboard text={currentAccount.card_number}>
+                      <CopyToClipboard text={bankAccount.card_number}>
                         <Button
                           basic
                           circular
@@ -147,11 +135,13 @@ const Dashboard = ({ state }) => {
                         />
                       </CopyToClipboard>
                     </Table.Cell>
-                    <Table.Cell width={3}>{currentAccount.card_cvv}</Table.Cell>
+                    <Table.Cell width={3}>{bankAccount.card_cvv}</Table.Cell>
                     <Table.Cell width={3}>
-                      {currentAccount?.card_expiration_date?.slice(0, 7)}
+                      {bankAccount?.card_expiration_date?.slice(0, 7)}
                     </Table.Cell>
-                    <Table.Cell width={3}>${currentAccount.balance}</Table.Cell>
+                    <Table.Cell width={3}>
+                      ${formatAmount(bankAccount.balance)}
+                    </Table.Cell>
                     <Table.Cell width={10}>
                       <span
                         style={{
@@ -180,78 +170,78 @@ const Dashboard = ({ state }) => {
             ) : (
               <Table celled striped size="small">
                 <Table.Body>
+                  <Table.Row key={bankAccount.card_number}>
+                    <Table.Cell width={3}>
+                      <strong>Hash</strong>
+                    </Table.Cell>
+                    <Table.Cell width={3}>
+                      <strong>To</strong>
+                    </Table.Cell>
+                    <Table.Cell width={3}>
+                      <strong>Reversed</strong>
+                    </Table.Cell>
+                    <Table.Cell width={3}>
+                      <strong>Amount</strong>
+                    </Table.Cell>
+                    <Table.Cell width={3} textAlign="right">
+                      <strong>Transaction Type</strong>
+                    </Table.Cell>
+                    <Table.Cell width={10}>
+                      <strong></strong>
+                    </Table.Cell>
+                  </Table.Row>
                   {transactions.map((transaction) => (
-                    <>
-                      <Table.Row key={transaction.hash}>
-                        <Table.Cell width={3}>
-                          <strong>Hash</strong>
-                        </Table.Cell>
-                        <Table.Cell width={3}>
-                          <strong>To</strong>
-                        </Table.Cell>
-                        <Table.Cell width={3}>
-                          <strong>Reversed</strong>
-                        </Table.Cell>
-                        <Table.Cell width={3}>
-                          <strong>Amount</strong>
-                        </Table.Cell>
-                        <Table.Cell width={3} textAlign="right">
-                          <strong>Transaction Type</strong>
-                        </Table.Cell>
-                        <Table.Cell width={10}>
-                          <strong></strong>
-                        </Table.Cell>
-                      </Table.Row>
-                      <Table.Row key={transaction.id}>
-                        <Table.Cell width={3} textAlign="right">
-                          <span
-                            style={{
-                              display: "inline-block",
-                              minWidth: "15em",
-                            }}
+                    <Table.Row key={transaction.id}>
+                      <Table.Cell width={3} textAlign="right">
+                        <span
+                          style={{
+                            display: "inline-block",
+                            minWidth: "15em",
+                          }}
+                        >
+                          {transaction.hash}
+                        </span>
+                        <CopyToClipboard text={transaction.hash}>
+                          <Button
+                            basic
+                            circular
+                            compact
+                            size="mini"
+                            color="blue"
+                            icon="copy outline"
+                          />
+                        </CopyToClipboard>
+                      </Table.Cell>
+                      <Table.Cell width={3}>{transaction?.to}</Table.Cell>
+                      <Table.Cell width={3}>
+                        {transaction.reversed.toString()}
+                      </Table.Cell>
+                      <Table.Cell width={3}>
+                        ${formatAmount(transaction.amount)}
+                      </Table.Cell>
+                      <Table.Cell width={3}>
+                        {currentAccount.id === transaction.from
+                          ? "Credit"
+                          : "Debit"}
+                      </Table.Cell>
+                      <Table.Cell width={10}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            minWidth: "8em",
+                          }}
+                        >
+                          <Button
+                            color="blue"
+                            onClick={() =>
+                              onReverse(transaction.hash, transaction.amount)
+                            }
                           >
-                            {transaction.hash}
-                          </span>
-                          <CopyToClipboard text={transaction.hash}>
-                            <Button
-                              basic
-                              circular
-                              compact
-                              size="mini"
-                              color="blue"
-                              icon="copy outline"
-                            />
-                          </CopyToClipboard>
-                        </Table.Cell>
-                        <Table.Cell width={3}>{transaction?.to}</Table.Cell>
-                        <Table.Cell width={3}>
-                          {transaction.reversed.toString()}
-                        </Table.Cell>
-                        <Table.Cell width={3}>${transaction.amount}</Table.Cell>
-                        <Table.Cell width={3}>
-                          {currentAccount.id === transaction.from
-                            ? "Credit"
-                            : "Debit"}
-                        </Table.Cell>
-                        <Table.Cell width={10}>
-                          <span
-                            style={{
-                              display: "inline-block",
-                              minWidth: "8em",
-                            }}
-                          >
-                            <Button
-                              color="blue"
-                              onClick={() =>
-                                onReverse(transaction.hash, transaction.amount)
-                              }
-                            >
-                              Reverse
-                            </Button>
-                          </span>
-                        </Table.Cell>
-                      </Table.Row>
-                    </>
+                            Revert Transaction
+                          </Button>
+                        </span>
+                      </Table.Cell>
+                    </Table.Row>
                   ))}
                 </Table.Body>
               </Table>

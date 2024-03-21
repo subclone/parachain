@@ -24,9 +24,9 @@ use subxt::{
 	config::substrate::H256, events::EventDetails, utils::AccountId32, OnlineClient,
 	SubstrateConfig,
 };
-use subxt_signer::{sr25519::Keypair, SecretUri};
+use subxt_signer::sr25519::Keypair;
 
-#[subxt::subxt(runtime_metadata_path = "./iso-8583-chain.scale")]
+#[subxt::subxt(runtime_metadata_path = "./iso8583-chain.scale")]
 pub mod iso_8583_chain {}
 
 /// Service for consuming events and submitting finalities of ISO8583 messages on-chain
@@ -36,24 +36,16 @@ pub struct WatcherService {
 	/// ISO8583 message processor
 	pub processor: Arc<Iso8583MessageProcessor>,
 	/// Substrate client
-	pub client: OnlineClient<SubstrateConfig>,
+	pub client: Arc<OnlineClient<SubstrateConfig>>,
 }
 
 impl WatcherService {
 	/// Create a new watcher service
 	pub(crate) async fn new(
-		seed: SecretUri,
+		keypair: Keypair,
 		processor: Arc<Iso8583MessageProcessor>,
-		ws_url: String,
+		client: Arc<OnlineClient<SubstrateConfig>>,
 	) -> Result<Self, &'static str> {
-		let keypair = Keypair::from_uri(&seed).map_err(|_| "Invalid seed phrase")?;
-		log::info!("Using keypair: {:?}", hex::encode(&keypair.public_key()));
-
-		let client = OnlineClient::<SubstrateConfig>::from_url(&ws_url)
-			.await
-			.map_err(|_| format!("Could not connect to Substrate node at: {}", ws_url))
-			.unwrap();
-
 		Ok(Self { keypair, processor, client })
 	}
 

@@ -11,7 +11,7 @@ use op_core::{
 	transaction::traits::TransactionTrait,
 };
 
-#[subxt::subxt(runtime_metadata_path = "./iso-8583-chain.scale")]
+#[subxt::subxt(runtime_metadata_path = "./iso8583-chain.scale")]
 pub mod iso_8583_chain {}
 
 /// Mock implementation of the Oracle API server.
@@ -60,7 +60,7 @@ impl MockProcessorImpl {
 				card_cvv: account.2.to_string(),
 				card_expiration_date: expiration_date,
 				balance: account.3,
-				account_id: Some(account.4.trim_start_matches("0x").to_string()),
+				account_id: account.4.map(|s| s.to_string()),
 			};
 
 			let bank_account =

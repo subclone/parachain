@@ -40,4 +40,18 @@ export const DEV_ACCOUNTS = [
     card_cvv: "000",
     balance: 1000000000,
   },
+  // Alice stash
+  {
+    card_holder_first_name: "Alice_stash",
+    card_number: "4169812345678908",
+    card_cvv: "999",
+    balance: 0,
+  },
+  // Bob stash
+  {
+    card_holder_first_name: "Bob_stash",
+    card_number: "4169812345678909",
+    card_cvv: "888",
+    balance: 0,
+  },
 ];

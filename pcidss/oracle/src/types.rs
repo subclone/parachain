@@ -1,7 +1,7 @@
 //! Types used in the PCIDSS Gateway.
 
 /// Message type indicator for the ISO-8583 message, 1987 version
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MTI {
 	/// 0100 - Authorization request
 	AuthorizationRequest,
@@ -87,19 +87,19 @@ impl Into<&str> for ResponseCodes {
 
 /// Represents truncated version of dev accounts
 /// Explicitly used in tests and dev mode
-pub(crate) type DevAccount = (&'static str, &'static str, &'static str, u32, &'static str);
+pub(crate) type DevAccount = (&'static str, &'static str, &'static str, u32, Option<&'static str>);
 
 /// Constants used in the app
 pub mod constants {
 	/// ISO8583 Pallet ID converted to `AccountId32`
 	pub const PALLET_ACCOUNT: &str =
 		"6d6f646c70792f69736f38350000000000000000000000000000000000000000";
-		
+
 	/// Pallet prefix
 	pub const PALLET_NAME: &str = "ISO8583";
 
 	/// Field numbers that we populate in the ISO message
-	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 10] = [
+	pub const POPULATED_ISO_MSG_FIELD_NUMBERS: [u32; 9] = [
 		0, // Message Type Indicator or MTI
 		2, // Primary account number, card number
 		3, // Processing code
@@ -110,21 +110,20 @@ pub mod constants {
 		32,  // Acquiring institution ID
 		35,  // Track-2 Data
 		126, // Private data
-		127, // Private data
 	];
 
 	/// Response Code field
 	pub const RESPONSE_CODE_FIELD_NUMBER: u32 = 39;
 
 	// Development accounts
-	pub const DEV_ACCOUNTS: [crate::types::DevAccount; 6] = [
+	pub const DEV_ACCOUNTS: [crate::types::DevAccount; 8] = [
 		// Healthy account
 		(
 			"Alice",
 			"4169812345678901",
 			"123",
 			1000,
-			"0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d",
+			Some("d43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d"),
 		),
 		// Zero balance case
 		(
@@ -132,21 +131,21 @@ pub mod constants {
 			"4169812345678902",
 			"124",
 			0,
-			"0x8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48",
+			Some("8eaf04151687736326c9fea17e25fc5287613693c912909cb226aa4794f26a48"),
 		),
 		(
 			"Charlie",
 			"4169812345678903",
 			"125",
 			12345,
-			"0x90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22",
+			Some("90b5ab205c6974c9ea841be688864633dc9ca8a357843eeacf2314649965fe22"),
 		),
 		(
 			"Dave",
 			"4169812345678904",
 			"126",
 			1000000,
-			"0x306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20",
+			Some("306721211d5404bd9da88e0204360a1a9ab8b87c66c1bc2fcdd37f3c2222cc20"),
 		),
 		// Expired card
 		(
@@ -154,7 +153,7 @@ pub mod constants {
 			"4169812345678905",
 			"127",
 			1000,
-			"0xe659a7a1628cdd93febc04a4e0646ea20e9f5f0ce097d9a05290d4a9e054df4e",
+			Some("e659a7a1628cdd93febc04a4e0646ea20e9f5f0ce097d9a05290d4a9e054df4e"),
 		),
 		// Mock acquirer account, i.e merchant
 		(
@@ -162,7 +161,11 @@ pub mod constants {
 			"123456",
 			"000",
 			1000000000,
-			"0xecd07df8b5fdd6c13e776c4720b325423d5c2449520266ca11dfd1735e28f572",
+			Some("ecd07df8b5fdd6c13e776c4720b325423d5c2449520266ca11dfd1735e28f572"),
 		),
+		// Alice stash
+		("Alice_stash", "4169812345678908", "999", 0, None),
+		// Bob stash
+		("Bob_stash", "4169812345678909", "888", 0, None),
 	];
 }

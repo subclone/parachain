@@ -278,4 +278,11 @@ messages:
           data_encoding: ASCII
           len_encoding: ASCII
           position: 126
-          
+
+        # - name: "private_data_2"
+        #   id: 127
+        #   type: Variable
+        #   len: 2
+        #   data_encoding: ASCII
+        #   len_encoding: ASCII
+        #   position: 127

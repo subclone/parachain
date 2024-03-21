@@ -1,1 +1,0 @@
-alter table bank_account add column account_id char(64);

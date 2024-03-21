@@ -3,16 +3,28 @@ import cors from "cors";
 import express, { Router } from "express";
 import helmet from "helmet";
 import morgan from "morgan";
-import { MCC, MTI, ProcessingCode, RequestBody } from "./types";
+import { MTI, ProcessingCode, RequestBody } from "./types";
 import { ensurePadded, responseCodeToMessage } from "./utils";
 // @ts-ignore
 import iso8583 from "iso_8583";
 
 // Custom format for `126` field
 let CUSTOM_FORMATS = {
+  "4": {
+    ContentType: "n",
+    Label: "Amount",
+    LenType: "fixed",
+    MaxLen: 20,
+  },
   "126": {
     ContentType: "ans",
     Label: "Private data",
+    LenType: "llvar",
+    MaxLen: 100,
+  },
+  "127": {
+    ContentType: "ans",
+    Label: "Private data 2",
     LenType: "llvar",
     MaxLen: 100,
   },
@@ -80,6 +92,13 @@ export default class Server {
     );
 
     router.post(
+      "/register",
+      async (req: express.Request, res: express.Response) => {
+        this.submitIso8583(req, res);
+      }
+    );
+
+    router.post(
       "/balances",
       async (req: express.Request, res: express.Response) => {
         this.fetchAccountsBalances(req, res);
@@ -95,7 +114,6 @@ export default class Server {
     res: express.Response
   ) {
     try {
-      console.log("Fetching accounts balances", req.body);
       let accounts = req.body?.accounts || [];
       let signature = req.body?.signature || "";
 
@@ -113,13 +131,6 @@ export default class Server {
       let msgResponse = await this.oracle_rpc.send(
         "pcidss_get_batch_balances",
         [signature.slice(1), accounts]
-      );
-
-      console.log(
-        "Response from oracle",
-        msgResponse.map((x: any[]) => {
-          return { accountId: x[0], balance: x[1] };
-        })
       );
 
       res.status(200).json(
@@ -150,12 +161,12 @@ export default class Server {
     const isopack = new iso8583(data, CUSTOM_FORMATS);
 
     try {
+      console.log("Sending ISO8583 message to oracle", data);
       let msgResponse = await this.oracle_rpc.send("pcidss_submit_iso8583", [
         // slicing the first two bytes, because they are the length of the message
         // RPC doesn't expect it
         Array.from(isopack.getBufferMessage().slice(2)),
       ]);
-
       await this.processResponse(msgResponse, res);
     } catch {
       res.status(500).json({
@@ -173,7 +184,7 @@ export default class Server {
     lenBytes[0] = len >> 8;
     lenBytes[1] = len & 0xff;
 
-    let isopack = new iso8583();
+    let isopack = new iso8583({}, CUSTOM_FORMATS);
     let msg: any = isopack.getIsoJSON(Buffer.from(lenBytes.concat(isoMsg)), {
       lenEncoding: "hex",
       bitmapEncoding: "hex",
@@ -219,6 +230,8 @@ export default class Server {
     let isReversal = txHash !== null;
     let registerOnChainAccount = accountId !== null;
 
+    console.log("registerOnChainAccount", registerOnChainAccount, accountId);
+
     // Format is `MMDDhhmmss`
     const transmissionDate = `${monthDay}${timeDate}`;
 
@@ -237,19 +250,13 @@ export default class Server {
       0: mti,
       2: cardNumber,
       3: ProcessingCode.Purchase,
-      4: ensurePadded(amount, 12), // Amount is 12 characters long, check the length of amount and pad it with `0` from the left
+      4: ensurePadded(amount.toString(), 20), // Amount is 12 characters long, check the length of amount and pad it with `0` from the left
       7: transmissionDate,
       12: timeDate,
-      13: monthDay,
-      14: cardExpiration.replace("/", ""),
-      18: MCC.ComputerNetworkServices,
       32: "123456", // Acquiring institution ID, hard coded, for now
       35: track2, // Track-2 Data
-      41: "12345678", // Card Acceptor Terminal Identification
-      42: "ABCDEFGH_000001", // Card Acceptor Identification Code
-      43: "Dummy business name, Dummy City, 1200000", // Card Acceptor Name/Location
-      49: "997", // Currency Code, Transaction, USD - 997, EUR - 978
       126: privateData ?? "0".repeat(99), // dummy 100 bytes, will be replaced in the future
+      // 127: "0".repeat(99), // dummy 100 bytes, will be replaced in the future
     };
   }
 
@@ -265,7 +272,7 @@ export default class Server {
     );
     this.app.use(
       cors({
-        origin: ["http://0.0.0.0:3001", "http://localhost:3001"],
+        origin: ["http://0.0.0.0:3002", "http://localhost:3002"],
         preflightContinue: true,
         credentials: false,
       })

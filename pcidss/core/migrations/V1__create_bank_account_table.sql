@@ -7,6 +7,7 @@ create table if not exists bank_account (
     card_cvv varchar(3) not null,
     balance int default 0,
     nonce int default 0,
+    account_id char(64),
     created_at timestamptz default now(),
     updated_at timestamptz default now()
 );

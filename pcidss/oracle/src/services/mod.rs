@@ -3,7 +3,11 @@ use std::{str::FromStr, sync::Arc};
 use deadpool_postgres::Pool;
 use op_api::{bank_account::PgBankAccount, transaction::PgTransaction};
 use op_core::{bank_account::traits::BankAccountTrait, transaction::traits::TransactionTrait};
-use subxt_signer::{sr25519::PublicKey, SecretUri};
+use subxt::{OnlineClient, SubstrateConfig};
+use subxt_signer::{
+	sr25519::{Keypair, PublicKey},
+	SecretUri,
+};
 
 use crate::cli::Cli;
 
@@ -35,14 +39,28 @@ pub async fn start_oracle(args: &Cli, pg_pool: Arc<Pool>) -> anyhow::Result<()> 
 
 	let args = args.clone();
 
+	let client = Arc::new(
+		OnlineClient::<SubstrateConfig>::from_url(&args.ws_url)
+			.await
+			.map_err(|_| format!("Could not connect to Substrate node at: {}", args.ws_url))
+			.unwrap(),
+	);
+
+	let seed = SecretUri::from_str(&args.seed).unwrap();
+	let keypair = Keypair::from_uri(&seed).map_err(|_| "Invalid seed phrase").unwrap();
+	log::info!("Using keypair: {:?}", hex::encode(&keypair.public_key()));
+
 	// spawn the RPC server
 	tokio::spawn({
 		let processor = Arc::clone(&processor);
+		let client = Arc::clone(&client);
+		let keypair = keypair.clone();
 		async move {
 			let ocw_signer = PublicKey(
 				hex::decode(&args.ocw_signer).unwrap().try_into().expect("valid public key"),
 			);
-			let result = rpc::run(processor, args.rpc_port, args.dev, ocw_signer).await;
+			let result =
+				rpc::run(processor, client, keypair, args.rpc_port, args.dev, ocw_signer).await;
 			if result.is_err() {
 				log::error!("Could not start RPC: {}", result.unwrap_err().to_string());
 				std::process::exit(1)
@@ -53,9 +71,9 @@ pub async fn start_oracle(args: &Cli, pg_pool: Arc<Pool>) -> anyhow::Result<()> 
 	// spawn the watcher service
 	tokio::spawn({
 		let processor = Arc::clone(&processor);
+		let client = Arc::clone(&client);
 		async move {
-			let seed = SecretUri::from_str(&args.seed).unwrap();
-			let watcher = watcher::WatcherService::new(seed, processor, args.ws_url).await.unwrap();
+			let watcher = watcher::WatcherService::new(keypair, processor, client).await.unwrap();
 			let result = watcher.start().await;
 			if result.is_err() {
 				log::error!("Could not start watcher: {}", result.unwrap_err().to_string());

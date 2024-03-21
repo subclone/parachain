@@ -104,7 +104,7 @@ impl Iso8583MessageProcessor {
 
 			let amount: u32 = iso_msg.bmp_child_value(4)?.trim().parse()?;
 
-			let event_id = iso_msg.bmp_child_value(127);
+			let event_id = iso_msg.bmp_child_value(126);
 
 			// perform the transaction
 			let update_beneficiary_account =
@@ -228,7 +228,7 @@ impl Iso8583MessageProcessor {
 
 					// add `to` accountid` to the ISO message
 					iso_msg.set_on(
-						127,
+						126,
 						&updated_bank_account.account_id.unwrap_or(PALLET_ACCOUNT.to_string()),
 					)?;
 				}
@@ -280,6 +280,14 @@ impl Iso8583MessageProcessor {
 
 		let (account_id, _) = private_data.trim_start_matches("0x").split_at(64);
 
+		// revert if accoun_id is already registered
+		if let Ok(Some(_bank_account)) =
+			self.bank_account_controller.find_by_account_id(&account_id).await
+		{
+			iso_msg.set_on(RESPONSE_CODE_FIELD_NUMBER, ResponseCodes::DoNotHonor.into())?;
+			return Ok(());
+		}
+
 		let bank_account = self
 			.bank_account_controller
 			.find_by_card_number(&card_number)
@@ -293,6 +301,7 @@ impl Iso8583MessageProcessor {
 			)
 			.await?;
 
+		iso_msg.set_on(126, account_id)?;
 		iso_msg.set_on(RESPONSE_CODE_FIELD_NUMBER, ResponseCodes::Approved.into())?;
 
 		Ok(())

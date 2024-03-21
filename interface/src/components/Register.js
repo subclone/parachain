@@ -1,20 +1,22 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import Cards from "react-credit-cards";
 import toast, { Toaster } from "react-hot-toast";
 
 import "react-credit-cards/es/styles-compiled.css";
+import { useNavigate } from "react-router-dom";
+import { u8aToHexCompact, useSubstrateState } from "../substrate-lib";
 import {
-  formatCreditCardNumber,
   formatCVC,
+  formatCreditCardNumber,
   formatExpirationDate,
 } from "../utils";
 
-const Checkout = () => {
-  const [quantity, setQuantity] = useState(1);
-  const [amount, setAmount] = useState(0);
+const Register = () => {
+  const navigate = useNavigate();
 
+  const { currentAccount } = useSubstrateState();
   const [cardDetails, setCardDetails] = useState({
     cvc: "",
     expiry: "",
@@ -23,10 +25,6 @@ const Checkout = () => {
     number: "",
     txHash: null,
   });
-
-  useEffect(() => {
-    setAmount(20 * quantity);
-  }, [quantity]);
 
   const handleInputChange = ({ target }) => {
     if (target.name === "number") {
@@ -54,29 +52,30 @@ const Checkout = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // TODO: Call your backend to create the Checkout session.
-    console.log("cardDetails", cardDetails);
-
-    fetch(`${process.env.MODE === "dev" ? "" : "http://0.0.0.0:3000"}/pos/`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        cardNumber: cardDetails.number.replace(/\s+/g, ""),
-        cvv: cardDetails.cvc,
-        cardExpiration: cardDetails.expiry,
-        amount: amount.toString(),
-        txHash: cardDetails.txHash,
-      }),
-    })
+    fetch(
+      `${process.env.MODE === "dev" ? "" : "http://0.0.0.0:3001"}/register/`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cardNumber: cardDetails.number.replace(/\s+/g, ""),
+          cvv: cardDetails.cvc,
+          cardExpiration: cardDetails.expiry,
+          txHash: cardDetails.txHash,
+          amount: 0,
+          accountId: u8aToHexCompact(currentAccount.publicKey),
+        }),
+      }
+    )
       .then((res) => res.json())
       .then((data) => {
         console.log("Response", data);
         // go back to dashboard if approved
         if (data.status) {
           toast.success("Payment confirmed!");
-          window.location.href = "/";
+          navigate("/");
         } else {
           toast.error("Transaction failed: " + data.message);
         }
@@ -86,56 +85,6 @@ const Checkout = () => {
   return (
     <div className="sr-root">
       <Toaster position="top-center" reverseOrder={false} />
-      <div className="sr-main">
-        <section className="container">
-          <div>
-            <h1>Random photo</h1>
-            <h4>Purchase an original photo</h4>
-            <div className="pasha-image">
-              <img
-                alt="Random asset from Picsum"
-                src="https://picsum.photos/280/320?random=4"
-                width="140"
-                height="160"
-              />
-            </div>
-          </div>
-          <form>
-            <div className="quantity-setter">
-              <button
-                className="increment-btn"
-                disabled={quantity === 1}
-                onClick={() => setQuantity(quantity - 1)}
-                type="button"
-              >
-                -
-              </button>
-              <input
-                type="number"
-                id="quantity-input"
-                min="1"
-                max="10"
-                value={quantity}
-                name="quantity"
-                readOnly
-              />
-              <button
-                className="increment-btn"
-                disabled={quantity === 10}
-                onClick={() => setQuantity(quantity + 1)}
-                type="button"
-              >
-                +
-              </button>
-            </div>
-            <p className="sr-legal-text">Number of copies (max 10)</p>
-
-            <button style={{ pointerEvents: "none" }} id="submit">
-              {`Pay $${amount}`}
-            </button>
-          </form>
-        </section>
-      </div>
       <div className="sr-content">
         <section className="container">
           <Tabs
@@ -206,17 +155,11 @@ const Checkout = () => {
                     </div>
                     <input type="hidden" name="issuer" />
                     <div className="form-actions">
-                      <button className="btn btn-primary btn-block">PAY</button>
+                      <button className="btn btn-primary btn-block">
+                        Register
+                      </button>
                     </div>
                   </form>
-                </div>
-              </div>
-            </Tab>
-
-            <Tab eventKey="Crypto" title="Crypto">
-              <div key="polkadot-js">
-                <div className="form-actions">
-                  <button className="btn btn-primary btn-block">Pay</button>
                 </div>
               </div>
             </Tab>
@@ -227,4 +170,4 @@ const Checkout = () => {
   );
 };
 
-export default Checkout;
+export default Register;

@@ -23,6 +23,14 @@ function clearNumber(value = "") {
   return value.replace(/\D+/g, "");
 }
 
+/**
+ * Six decimals for ISO coin
+ * @param {*} value
+ */
+export function formatAmount(value) {
+  return parseFloat(value) / 1000000;
+}
+
 export function formatCreditCardNumber(value) {
   if (!value) {
     return value;
