@@ -87,7 +87,7 @@ const Checkout = () => {
         // go back to dashboard if approved
         if (data.status) {
           toast.success("Payment confirmed!");
-          navigate("/dashboard");
+          navigate("/");
         } else {
           toast.error("Transaction failed: " + data.message);
         }
