@@ -98,7 +98,7 @@ const loadAccounts = (state, dispatch) => {
 
   const asyncLoadAccounts = async () => {
     try {
-      await web3Enable("iso8583-chain");
+      await web3Enable("polkadot-js");
       let allAccounts = await web3Accounts();
 
       allAccounts = allAccounts.map(({ address, meta }) => ({

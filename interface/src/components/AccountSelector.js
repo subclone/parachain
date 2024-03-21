@@ -12,7 +12,6 @@ import {
 } from "semantic-ui-react";
 
 import { useSubstrate, useSubstrateState } from "../substrate-lib";
-import { formatAmount } from "../utils";
 
 const CHROME_EXT_URL =
   "https://chrome.google.com/webstore/detail/polkadot%7Bjs%7D-extension/mopnmbcafieddcagagdcbnhejhlodfdd";
@@ -63,10 +62,7 @@ function Main(props) {
     >
       <Container>
         <Menu.Menu>
-          <Image
-            src={`${process.env.PUBLIC_URL}/assets/substrate-logo.png`}
-            size="mini"
-          />
+          <Image src={`images/logo.png`} size="mini" />
         </Menu.Menu>
         <Menu.Menu position="right" style={{ alignItems: "center" }}>
           {!currentAccount ? (
@@ -121,7 +117,7 @@ function BalanceAnnotation(props) {
     currentAccount &&
       api.query.system
         .account(acctAddr(currentAccount), (balance) =>
-          setAccountBalance(balance.data.free)
+          setAccountBalance(balance.data.free.toHuman())
         )
         .then((unsub) => (unsubscribe = unsub))
         .catch(console.error);
@@ -132,7 +128,7 @@ function BalanceAnnotation(props) {
   return currentAccount ? (
     <Label pointing="left">
       <Icon name="money" color="green" />
-      {formatAmount(accountBalance)}
+      {accountBalance}
     </Label>
   ) : null;
 }

@@ -47,5 +47,8 @@ async fn test_register() {
 
 	let charlie_account = get_bank_account_by_card_number(&api, &CHARLIE.1).await;
 
-	assert_eq!(charlie_account.account_id, Some(CHARLIE.4.trim_start_matches("0x").to_string()));
+	assert_eq!(
+		charlie_account.account_id,
+		Some(CHARLIE.4.unwrap().trim_start_matches("0x").to_string())
+	);
 }

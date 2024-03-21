@@ -6,7 +6,6 @@ import toast, { Toaster } from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
 import { Button, Grid, Label, Table } from "semantic-ui-react";
 import { u8aToHexCompact, useSubstrateState } from "../substrate-lib";
-import { formatAmount } from "../utils";
 
 const Dashboard = ({ state }) => {
   const { apiState, currentAccount } = useSubstrateState();
@@ -49,18 +48,18 @@ const Dashboard = ({ state }) => {
   const DEV_MODE = process.env.MODE === "dev";
 
   const onReverse = async (hash, amount) => {
-    fetch(`${DEV_MODE ? "" : "http://0.0.0.0:3000"}/reverse`, {
+    fetch(`${DEV_MODE ? "" : "http://0.0.0.0:3001"}/reverse`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        cardNumber: currentAccount.card_number,
+        cardNumber: bankAccount.card_number,
         cardExpiration:
-          currentAccount.card_expiration_date.slice(5, 7) +
+          bankAccount.card_expiration_date.slice(5, 7) +
           "/" +
-          currentAccount.card_expiration_date.slice(2, 4),
-        cvv: currentAccount.card_cvv,
+          bankAccount.card_expiration_date.slice(2, 4),
+        cvv: bankAccount.card_cvv,
         amount: amount.toString(),
         txHash: hash,
       }),
@@ -139,9 +138,7 @@ const Dashboard = ({ state }) => {
                     <Table.Cell width={3}>
                       {bankAccount?.card_expiration_date?.slice(0, 7)}
                     </Table.Cell>
-                    <Table.Cell width={3}>
-                      ${formatAmount(bankAccount.balance)}
-                    </Table.Cell>
+                    <Table.Cell width={3}>${bankAccount.balance}</Table.Cell>
                     <Table.Cell width={10}>
                       <span
                         style={{
@@ -216,9 +213,7 @@ const Dashboard = ({ state }) => {
                       <Table.Cell width={3}>
                         {transaction.reversed.toString()}
                       </Table.Cell>
-                      <Table.Cell width={3}>
-                        ${formatAmount(transaction.amount)}
-                      </Table.Cell>
+                      <Table.Cell width={3}>${transaction.amount}</Table.Cell>
                       <Table.Cell width={3}>
                         {currentAccount.id === transaction.from
                           ? "Credit"
@@ -236,6 +231,7 @@ const Dashboard = ({ state }) => {
                             onClick={() =>
                               onReverse(transaction.hash, transaction.amount)
                             }
+                            disabled={transaction.reversed}
                           >
                             Revert Transaction
                           </Button>

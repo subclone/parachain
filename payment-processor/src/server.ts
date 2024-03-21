@@ -227,8 +227,8 @@ export default class Server {
       accountId,
     }: RequestBody = body;
 
-    let isReversal = txHash !== null;
-    let registerOnChainAccount = accountId !== null;
+    let isReversal = !!txHash;
+    let registerOnChainAccount = !!accountId;
 
     console.log("registerOnChainAccount", registerOnChainAccount, accountId);
 
