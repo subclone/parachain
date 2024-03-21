@@ -33,6 +33,8 @@ And for the Substrate chain, you can access the explorer [here](https://polkadot
 
 ## Demo flow
 
+Demo of on-chain extrinsics and their interaction with the oracle gateway is documented [here](https://github.com/subclone/iso8583-chain/blob/main/DEMO.md). This demo is aimed at showing the user facing side of the infrastracture, and in general the end product of all components.
+
 ### Prerequisites
 
 First and foremost, insert the offchain worker key by running this command:
@@ -97,6 +99,7 @@ If you check for account balances from the explorer, you will see that they matc
 
 ### ISO-8583 transactions
 
+### Payment
 Now, to actually see how on-chain balance is synced and how ISO-8583 transactions are processed, we can use the checkout page. It is a simple form that asks for card details in a checkout session, i.e when paying for some goods. It is a simulation of a POS terminal, part of delivery of Milestone 1. Submit the form with any of the dev bank account details, here we will use `Charlie`:
 
 ![Screenshot 2024-03-21 at 22 32 54](https://github.com/subclone/payment-processor/assets/88332432/b7f4df39-5782-408e-a6c6-0402ba7963b9)
@@ -115,6 +118,16 @@ sign and submit (if you are using development accounts it will not prompt signat
 ![Screenshot 2024-03-21 at 23 57 32](https://github.com/subclone/payment-processor/assets/88332432/0ab6d5d4-30c9-4699-a954-2377287fa9ea)
 
 Make sure you have selected a proper wallet, in the screenshot above it is `Dave`.
+
+#### Reversal 
+
+Reversal can be triggered in the dashboard, similar to how it was after the Milestone 1.
+
+![Screenshot 2024-03-22 at 0 09 07](https://github.com/subclone/payment-processor/assets/88332432/ea3670b5-72ea-42e5-975c-a579c9216a37)
+
+Note that this is an off-chain ledger transaction and it can only be reversed once.
+
+For triggering reversal using Polkadot.js, take a look at the [Demo of ISO-8583 chain](https://github.com/subclone/iso8583-chain/blob/main/DEMO.md)
 
 ### Settlement
 
