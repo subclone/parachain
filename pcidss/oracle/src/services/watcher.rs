@@ -90,8 +90,6 @@ impl WatcherService {
 		block_number: u32,
 		event: &EventDetails<SubstrateConfig>,
 	) -> anyhow::Result<(), Box<dyn std::error::Error>> {
-		log::info!("Event: {:?}", event.pallet_name());
-
 		if event.pallet_name().contains(PALLET_NAME) {
 			let event_name = event.variant_name();
 

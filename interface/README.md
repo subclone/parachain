@@ -16,6 +16,15 @@ It also uses the payment processor server running at `http://localhost:3001` as 
 2. Run `yarn start` to start the interface
 3. Open `http://localhost:3002` in your browser
 
+### Docker
+
+You can also run the interface in Docker:
+
+```bash
+docker build -t interface .
+docker run -p 3002:3002 interface
+```
+
 ## How to use
 
 Here are the test accounts you can use:
@@ -27,28 +36,28 @@ Here are the test accounts you can use:
     "card_number": "4169812345678901",
     "card_cvv": "123",
     "balance": 1000,
-    "card_expiry": "09/27"
+    "card_expiry": "03/28"
   },
   {
     "card_holder_first_name": "Bob",
     "card_number": "4169812345678902",
     "card_cvv": "124",
     "balance": 0,
-    "card_expiry": "09/27"
+    "card_expiry": "03/28"
   },
   {
     "card_holder_first_name": "Charlie",
     "card_number": "4169812345678903",
     "card_cvv": "125",
     "balance": 12345,
-    "card_expiry": "09/27"
+    "card_expiry": "03/28"
   },
   {
     "card_holder_first_name": "Dave",
     "card_number": "4169812345678904",
     "card_cvv": "126",
     "balance": 1000000,
-    "card_expiry": "09/27"
+    "card_expiry": "03/28"
   },
   {
     "card_holder_first_name": "Eve",
@@ -62,19 +71,21 @@ Here are the test accounts you can use:
     "card_number": "123456",
     "card_cvv": "000",
     "balance": 1000000000,
-    "card_expiry": "09/27"
+    "card_expiry": "03/28"
   },
   {
     "card_holder_first_name": "Alice_stash",
     "card_number": "4169812345678908",
     "card_cvv": "999",
     "balance": 0,
+    "card_expiry": "03/28"
   },
   {
     "card_holder_first_name": "Bob_stash",
     "card_number": "4169812345678909",
     "card_cvv": "888",
     "balance": 0,
+    "card_expiry": "03/28"
   },
 ]
 ```

@@ -116,7 +116,7 @@ pub mod constants {
 	pub const RESPONSE_CODE_FIELD_NUMBER: u32 = 39;
 
 	// Development accounts
-	pub const DEV_ACCOUNTS: [crate::types::DevAccount; 8] = [
+	pub const DEV_ACCOUNTS: [crate::types::DevAccount; 9] = [
 		// Healthy account
 		(
 			"Alice",
@@ -162,6 +162,13 @@ pub mod constants {
 			"000",
 			1000000000,
 			Some("ecd07df8b5fdd6c13e776c4720b325423d5c2449520266ca11dfd1735e28f572"),
+		),
+		(
+			"Demo User",
+			"4169812345678900",
+			"123",
+			1000,
+			Some("6ccb6cc57ad3cd38186424a8e5f2e640acc7c9fc5884086c7c4fb50faee9fe03"),
 		),
 		// Alice stash
 		("Alice_stash", "4169812345678908", "999", 0, None),

@@ -33,4 +33,4 @@ RUN npm install --only=production
 CMD [ "node", "dist/index.js" ]
 
 # Expose port 3000 for the Express server to be accessible outside the container
-EXPOSE 3000
+EXPOSE 3001

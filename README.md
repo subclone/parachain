@@ -31,7 +31,7 @@ You will be able to access the demo merchant application at `http://0.0.0.0:3001
 
 ## Demo flow
 
-Documentation of [merchant application](./interface/README.md) contains the details about the demo flow, you can follow it to fully test the setup. Note that, sometimes websocket connection with frontend is lost, so you might need to refresh the page.
+Initial demo documentation is located at [merchant application](./interface/README.md). You can follow it to fully test the setup. Note that, sometimes websocket connection with frontend is lost, so you might need to refresh the page.
 
 ## Notes
 
@@ -39,7 +39,6 @@ Some important notes about the project:
 
 - It is a PoC implementation, so there are many places where we cut corners and some things are hard coded.
 - ISO-8583:1987 standard is used.
-- Substrate chain integration is not implemented yet.
 - Unit tests are more like integration tests (somewhat similar to Substrate).
 
 ## Contents

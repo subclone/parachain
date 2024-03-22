@@ -1,0 +1,20 @@
+[package]
+name = "oracle-e2e-tests"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+
+[dev-dependencies]
+op-api = { workspace = true }
+op-core = { workspace = true }
+pcidss-oracle = { path = "../oracle" }
+
+# subxt
+subxt = { workspace = true }
+subxt-signer = { workspace = true, features = ["subxt"] }
+
+# Async dependencies
+async-trait = { workspace = true }
+tokio = { workspace = true }
+jsonrpsee = { workspace = true }
+hex = { workspace = true }

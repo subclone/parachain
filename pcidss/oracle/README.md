@@ -97,15 +97,21 @@ Options:
 
 #### Testing
 
-Oracle service has integration tests for the ISO-8583 message processing logic. You can run them with:
+Oracle service has tests for the ISO-8583 message processing logic. You can run them with:
 
 ```bash
 make test
 # OR
-cargo test
+cargo test --workspace --exclude oracle-e2e-tests
 ```
 
 > **_NOTE:_** Integration tests are run in parallel by default. This might cause issues with Postgres database, so we should run them in a single thread and one by one.
+
+There is also a separate crate for testing end to end flow of the oracle service, however, it depends on the running Substrate client and Oracle, so it is not included in the main test suite.
+
+```bash
+cargo test -p oracle-e2e-tests
+```
 
 #### Linting and formatting
 

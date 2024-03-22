@@ -161,7 +161,6 @@ export default class Server {
     const isopack = new iso8583(data, CUSTOM_FORMATS);
 
     try {
-      console.log("Sending ISO8583 message to oracle", data);
       let msgResponse = await this.oracle_rpc.send("pcidss_submit_iso8583", [
         // slicing the first two bytes, because they are the length of the message
         // RPC doesn't expect it

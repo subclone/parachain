@@ -5,7 +5,7 @@ For demonstration purposes, `docker-compose` configuration is provided. It will 
 - [Demo merchant application](./interface/README.md)
 - [Payment Processor Server](./payment-processor/README.md)
 - PCIDSS compliant [oracle](./pcidss/README.md)
-- Substrate chain
+- [ISO-8583 compliant Substrate chain](https://github.com/subclone/iso8583-chain)
 
 To start the demo, first pull the images:
 
@@ -51,6 +51,32 @@ curl -H "Content-Type: application/json" \
 - `Eve` - an account with expired card
 - `5HRD6MDjy9XjX6gNhj7wSAinvpNw1DptfR73LZBz68zH4Gex` - wallet associated with merchant's bank account, i.e it will receive payments from the checkout page.
 
+Use these dev bank accounts for testing payment and reversal. Note that the `Demo User` account has a private key, which you have to add to `Polkadot.js` extension if you want to use it to sign transactions.
+
+```json
+[
+    {
+        "name": "Charlie",
+        "card_number": "4169812345678903",
+        "expiration_date": "03/28",
+        "cvv": "125"
+    },
+    {
+        "name": "Dave",
+        "card_number": "4169812345678904",
+        "expiration_date": "03/28",
+        "cvv": "126"
+    },    
+    {
+        "name": "Demo User",
+        "card_number": "",
+        "expiration_date": "03/28",
+        "cvv": "123",
+        "private_key": "intact start solar kind young network dizzy churn crisp custom fuel fabric"
+    }
+]
+```
+
 Use these predefined dev bank accounts for testing. They are not associated with any on-chain account.
 
 ```json
@@ -66,7 +92,7 @@ Use these predefined dev bank accounts for testing. They are not associated with
     "card_number": "4169812345678909",
     "expiration_date": "03/28",
     "cvv": "888"
-  },
+  }
 ]
 ```
 NOTE: expiration date is always 4 years away from current time, i.e 03/2028 assuming we are in 03/2024.
@@ -121,5 +147,3 @@ Make sure you have selected a proper wallet, in the screenshot above it is `Dave
 Note that in the explorer, you will initially see `InitiateTransfer` event, and after couple of blocks `ProcessedTransaction` event. This is because of event driven nature of current implementation. Most of the times, however, transaction is initiated and processed in the next or 2 blocks later. Since we are using off-chain ledger as a source of truth, on-chain settlement's speed is not really important, however it is important for UX since wallets need to be notified when transaction is settled (i.e by tracking `ProcessedTransaction` event).
 
 <img width="672" alt="Settlement" src="https://github.com/subclone/payment-processor/assets/88332432/ceb17bfc-63bf-4456-bb74-e5954eea43b3">
-
-## Notes

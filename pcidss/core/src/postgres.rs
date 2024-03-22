@@ -60,6 +60,11 @@ pub async fn run_migrations(postgres_config: Config) -> Result<(), Box<dyn Error
 	let migration_report = embedded::migrations::runner().run_async(&mut client).await?;
 
 	for migration in migration_report.applied_migrations() {
+		println!(
+			"Migration Applied -  Name: {}, Version: {}",
+			migration.name(),
+			migration.version()
+		);
 		info!("Migration Applied -  Name: {}, Version: {}", migration.name(), migration.version());
 	}
 
@@ -87,6 +92,7 @@ pub async fn mock_init(db_name: String) -> Result<Pool, DomainError> {
 	pg_config.user(&postgres_config.user);
 	pg_config.password(&postgres_config.password);
 	pg_config.host(&postgres_config.host);
+	pg_config.dbname("postgres");
 
 	let (client, connection) = pg_config.connect(NoTls).await?;
 

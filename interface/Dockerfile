@@ -34,7 +34,7 @@ ENV MODE="production"
 RUN npm install -g serve
 
 # Start the React application
-CMD [ "serve", "-l", "tcp://0.0.0.0:3001", "-s", "build" ]
+CMD [ "serve", "-l", "tcp://0.0.0.0:3002", "-s", "build" ]
 
 # Expose port 5000 for the React app to be accessible outside the container
-EXPOSE 3001
+EXPOSE 3002

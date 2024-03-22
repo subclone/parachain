@@ -11,4 +11,3 @@ Currently it's only used as a service by oracle, so there is no way to run it se
 ## Testing
 
 Since it is used by the oracle, it's functionality is tested in the oracle [integration tests](../oracle/src/tests/mod.rs).
- 

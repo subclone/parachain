@@ -2,7 +2,8 @@
 
 use std::{str::FromStr, sync::Arc};
 
-use subxt_signer::SecretUri;
+use subxt::{OnlineClient, SubstrateConfig};
+use subxt_signer::{sr25519::Keypair, SecretUri};
 
 use crate::{
 	services::watcher::WatcherService,
@@ -15,13 +16,13 @@ const SEED: &str = "//Alice";
 #[tokio::test]
 async fn test_compose_iso_msg() {
 	let mock_processor = Arc::new(MockProcessorImpl::new(Some("compose_iso".to_string())).await);
-	let watcher = WatcherService::new(
-		SecretUri::from_str(SEED).unwrap(),
-		mock_processor.processor.clone(),
-		"ws://localhost:9944".to_string(),
-	)
-	.await
-	.unwrap();
+	let keypair = Keypair::from_uri(&SecretUri::from_str(SEED).unwrap())
+		.map_err(|_| "Invalid seed phrase")
+		.unwrap();
+
+	let watcher = WatcherService::new(keypair, mock_processor.processor.clone(), client)
+		.await
+		.unwrap();
 
 	let from = get_bank_account_by_card_number(&mock_processor, ALICE.1).await;
 	let to = get_bank_account_by_card_number(&mock_processor, ACQUIRER.1).await;
