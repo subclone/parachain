@@ -4,7 +4,7 @@ This repository contains the infrastructure for ISO-8553 implementation for Subs
 
 This is the high-level overview of the infrastracture:
 
-![iso-8583-overview](https://github.com/subclone/payment-processor/assets/88332432/01c97bed-2ec8-4041-9702-cf079477e9be)
+![iso-8583-overview](https://github.com/subclone/payment-processor/assets/88332432/939a8e5c-0b2e-4735-b0f4-003726008248)
 
 
 ## Notes
