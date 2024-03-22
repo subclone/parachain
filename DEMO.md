@@ -1,5 +1,25 @@
 # Demo for M2
 
+## Run the node
+
+To run the node, you need to have the following dependencies installed:
+
+```bash
+docker run -it -p 9944:9944 kingleard/iso8583-chain --dev --tmp --unsafe-rpc-external --rpc-cors=all --rpc-methods=unsafe -loffchain-worker
+```
+
+Insert the offchain worker key to substrate node:
+
+```bash
+curl -H "Content-Type: application/json" \
+ --data '{ "jsonrpc":"2.0", "method":"author_insertKey", "params":["'"iso8"'", "'"news slush supreme milk chapter athlete soap sausage put clutch what kitten"'", "'"0xd2bf4b844dfefd6772a8843e669f943408966a977e3ae2af1dd78e0f55f4df67"'"],"id":1 }' \
+"http://0.0.0.0:9944"
+```
+
+Then, you can access the explorer [here](https://polkadot.js.org/apps/?rpc=ws://0.0.0.0:9944#/explorer).
+
+## Run the infrastracture
+
 For demonstration purposes, `docker-compose` configuration is provided. It will start the following services:
 
 - [Demo merchant application](./interface/README.md)
@@ -21,8 +41,6 @@ docker-compose up
 
 You will be able to access the demo merchant application at `http://localhost:3002`.
 
-And for the Substrate chain, you can access the explorer [here](https://polkadot.js.org/apps/?rpc=ws://127.0.0.1:9944#/explorer).
-
 ## Milestone Goals
 
 1. On-chain addresses can be associated with bank accounts
@@ -37,7 +55,7 @@ Demo of on-chain extrinsics and their interaction with the oracle gateway is doc
 
 ### Prerequisites
 
-First and foremost, insert the offchain worker key by running this command:
+First and foremost, insert the offchain worker key to substrate node, in case you didn't yet:
 
 ```bash
 curl -H "Content-Type: application/json" \
@@ -48,7 +66,7 @@ curl -H "Content-Type: application/json" \
 #### Accounts and their roles
 
 - `Alice`, `Bob` - oracle wallets, i.e used for submitting finality of ISO-8583 by PCIDSS oracles.
-- `Charlie`, `Dave` - wallets that are associated with corresponding bank account, come with balance and ready for using.
+- `Charlie`, `Dave`, `Demo User` - wallets that are associated with corresponding bank account, come with balance and ready for using.
 - `Alice_stash`, `Bob_stash` - wallets that will be used to demo associating on-chain accounts to bank account
 - `Eve` - an account with expired card
 - `5HRD6MDjy9XjX6gNhj7wSAinvpNw1DptfR73LZBz68zH4Gex` - wallet associated with merchant's bank account, i.e it will receive payments from the checkout page.
@@ -71,7 +89,7 @@ Use these dev bank accounts for testing payment and reversal. Note that the `Dem
     },    
     {
         "name": "Demo User",
-        "card_number": "",
+        "card_number": "4169812345678900",
         "expiration_date": "03/28",
         "cvv": "123",
         "private_key": "intact start solar kind young network dizzy churn crisp custom fuel fabric"
@@ -160,3 +178,7 @@ For triggering reversal using Polkadot.js, take a look at the [Demo of ISO-8583 
 Note that in the explorer, you will initially see `InitiateTransfer` event, and after couple of blocks `ProcessedTransaction` event. This is because of event driven nature of current implementation. Most of the times, however, transaction is initiated and processed in the next or 2 blocks later. Since we are using off-chain ledger as a source of truth, on-chain settlement's speed is not really important, however it is important for UX since wallets need to be notified when transaction is settled (i.e by tracking `ProcessedTransaction` event).
 
 <img width="672" alt="Settlement" src="https://github.com/subclone/payment-processor/assets/88332432/ceb17bfc-63bf-4456-bb74-e5954eea43b3">
+
+### Transfers between wallets
+
+For transferring between wallets, please refer to the [Demo of ISO-8583 chain](https://github.com/subclone/iso8583-chain/blob/main/DEMO.md)

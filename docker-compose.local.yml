@@ -25,7 +25,6 @@ services:
         condition: service_healthy
     ports:
       - 3030:3030
-      - 9944:9944
     environment:
       - RUST_LOG=debug
     platform: linux/x86_64

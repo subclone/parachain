@@ -98,11 +98,10 @@ const Checkout = () => {
     const {
       meta: { source, isInjected },
     } = currentAccount;
-
     const tx = api.tx.iso8583.initiateTransfer(
       currentAccount.publicKey,
       hexToU8a(MERCHANT),
-      amount
+      amount * 1_000_000
     );
 
     if (isInjected) {

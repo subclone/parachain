@@ -44,9 +44,7 @@ And assuming you are running the Substrate chain, you can access the explorer [h
 
 ## Demo flow
 
-Initial demo documentation is located at [merchant application](./interface/README.md). You can follow it to fully test the setup. Note that, sometimes websocket connection with frontend is lost, so you might need to refresh the page.
-
-Demo for the second milestone is located at [here](./DEMO.md). This is more comprehensive and shows the full cycle of the ISO-8583 messages.
+Main demo walkthrough is located [here](./DEMO.md). It contains comprehensive information about the demo flow, interactions between the components and the user facing side of the infrastracture. It also provides step by step guide on how to test main features of the milestone.
 
 ## Notes
 
