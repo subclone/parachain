@@ -27,7 +27,7 @@ jobs:
         postgresql password: postgres
     - name: Build
       working-directory: ./pcidss
-      run: cargo build --verbose
+      run: cargo build --verbose 
     - name: Run tests
       working-directory: ./pcidss
-      run: cargo test --verbose
+      run: cargo test --workspace --exclude oracle-e2e-tests

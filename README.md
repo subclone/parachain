@@ -38,11 +38,15 @@ Then start the services:
 docker-compose up
 ```
 
-You will be able to access the demo merchant application at `http://0.0.0.0:3001`.
+You will be able to access the demo merchant application at `http://0.0.0.0:3002`.
+
+And assuming you are running the Substrate chain, you can access the explorer [here](https://polkadot.js.org/apps/?rpc=ws://localhost:9944#/explorer).
 
 ## Demo flow
 
 Initial demo documentation is located at [merchant application](./interface/README.md). You can follow it to fully test the setup. Note that, sometimes websocket connection with frontend is lost, so you might need to refresh the page.
+
+Demo for the second milestone is located at [here](./DEMO.md). This is more comprehensive and shows the full cycle of the ISO-8583 messages.
 
 ## Notes
 
