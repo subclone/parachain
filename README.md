@@ -6,6 +6,17 @@ This is the high-level overview of the infrastracture:
 
 ![iso-8583-overview](https://github.com/subclone/payment-processor/assets/88332432/01c97bed-2ec8-4041-9702-cf079477e9be)
 
+
+## Notes
+
+There are some important assumtions and notes you should be aware of before testing this PoC:
+
+- that it is a PoC and should not be used in production
+- chain relies on the trusted oracle and payment processor server and serves as the settlement/extension layer of the existing financial system
+- single source of truth is the offchain ledger, for the sake of simplicity. In the future, it would be possible to implement a more complex system where the on-chain balances are more important.
+- oracles are in a semi-trusted environment, i.e. they are trusted to sign transactions, but not to decide on the validity of the transactions. This is done by the payment processor.
+- the payment processor is a trusted entity that is responsible for the finality of the transactions. It is PCIDSS compliant and is responsible for the security of the funds.
+
 ## Run the demo
 
 For demonstration purposes, `docker-compose` configuration is provided. It will start the following services:

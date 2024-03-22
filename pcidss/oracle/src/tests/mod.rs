@@ -4,7 +4,6 @@ mod mock;
 mod payment;
 mod register;
 mod reversal;
-mod watcher;
 
 #[cfg(test)]
 mod prelude {

@@ -199,17 +199,29 @@ impl WatcherService {
 		let from_bank_account = from_bank_account?.ok_or("From bank account not found")?;
 		let to_bank_account = to_bank_account?.ok_or("To bank account not found")?;
 
+		// account for 6 decimal places
+		let offchain_amount = amount / 1_000_000;
+		if offchain_amount == 0 {
+			return Err("Amount must be greater than 0".into());
+		}
+
 		log::debug!(
 			"Processing transaction from: {}, to: {}, amount: {}, event_id: {}",
 			from_hex,
 			to_hex,
-			amount,
+			offchain_amount,
 			&event_id
 		);
 
 		// compose ISO8583 message
 		let mut iso_msg_raw = self
-			.compose_iso_msg(&from_bank_account, Some(&to_bank_account), None, amount, &event_id)
+			.compose_iso_msg(
+				&from_bank_account,
+				Some(&to_bank_account),
+				None,
+				offchain_amount,
+				&event_id,
+			)
 			.map_err(|_| "Could not compose ISO8583 message")?;
 
 		let (_, iso_msg) = self.processor.process(&mut iso_msg_raw).await?;
@@ -264,7 +276,7 @@ impl WatcherService {
 					.expect("valid; qed"),
 			),
 			from,
-			transaction.amount as u128,
+			transaction.amount as u128 * 1_000_000,
 			iso_msg,
 			&event_id,
 		)
